@@ -3,7 +3,7 @@ Authored by Stas Sultanov [ [linkedIn](https://www.linkedin.com/in/stas-sultanov
 # About
 Collection of Powershell scripts for Microsoft products and services.
 
-# Structure
+# Content
 
 ```bash
 Root
@@ -20,9 +20,12 @@ Root
 │       ├── CreateUserForEntraIdentity.ps1      # Create SQL Server Database User for Identity within the Entra ID tenant.
 │       └── ManageUserAccess.ps1                # Set User access mode for the specified Sql Server Database.
 │
-└── Entra                                       # Scripts for Microsoft Entra services.
-    ├── App
-    │   ├── Dispose.ps1                         # Dispose an Application Registration within the Entra ID tenant.
-    │   └── Provision.ps1                       # Provision an Application Registration within the Entra ID tenant.
-    └── AssignRoleToIdentity.ps1                # Assign Role to the specified Identity within the Entra ID tenant.
+├── Entra                                       # Scripts for Microsoft Entra services.
+│   ├── App
+│   │   ├── Dispose.ps1                         # Dispose an Application Registration within the Entra ID tenant.
+│   │   └── Provision.ps1                       # Provision an Application Registration within the Entra ID tenant.
+│   └── AssignRoleToIdentity.ps1                # Assign Role to the specified Identity within the Entra ID tenant.
+│
+├── licens                                      # License file.
+└── readme.md                                   # This file.
 ```
