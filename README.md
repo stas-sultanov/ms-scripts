@@ -7,6 +7,7 @@ Collection of Powershell scripts for Microsoft products and services.
 
 ```bash
 Root
+│
 ├── Azure                                       # Scripts for Microsoft Azure services.
 │   ├── ApplicationInsights
 │   │   └── ReCreateApiKey.ps1                  # Create or Reset ApiKey with name specified.
