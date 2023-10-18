@@ -1,11 +1,12 @@
 <#
-	author: Stas Sultanov
-	profile: https://www.linkedin.com/in/stas-sultanov
-	contact: stas.sultanov@outlook.com
-.DESCRIPTION
-	Provision Entra Application Registration.
+	author:		Stas Sultanov
+	contact:	stas.sultanov@outlook.com
+	gitHub:		https://github.com/stas-sultanov
+	profile:	https://www.linkedin.com/in/stas-sultanov
+.SYNOPSIS
+	Provision an Application Registration within the Entra ID tenant.
 .NOTES
-	Application assumes that there can be only one application.
+	Script assumes that names of the applications are unique within the Entra ID tenant.
 	Connect-AzAccount must be called before executing this script.
 	Uses Mg library v1, also for Graph direct API calls.
 .PARAMETER appName
@@ -14,6 +15,13 @@
 	Name of the Manifest file, including path.
 .PARAMETER logoFileName
 	Name of the Logo file, including path.
+.OUTPUTS
+	System.Object
+	On object with following fields:
+		- ClientId
+		- IdentifierUris
+		- ObjectId
+		- Secrets
 #>
 
 using namespace Microsoft.Graph.PowerShell.Models;
@@ -44,7 +52,7 @@ $manifest = Get-Content $manifestFileName | out-string | ConvertFrom-Json -AsHas
 
 if ([string]::IsNullOrEmpty($manifest.Id))
 {
-	# get all aplications by name
+	# get all applications by name
 	$app = Get-MgApplication -Filter "DisplayName eq '$appName'";
 
 	# check if there is more then one application
@@ -55,14 +63,14 @@ if ([string]::IsNullOrEmpty($manifest.Id))
 }
 else
 {
-	# get aplication
+	# get application
 	$app = Get-MgApplicationByAppId -AppId $manifest.Id;
 }
 
 # check if app not exist
 if ($null -eq $app)
 {
-	Write-Host "App Registration Create";
+	Write-Information "App Registration Create";
 
 	# create new app registration
 	if ([string]::IsNullOrEmpty($manifest.Id))
@@ -76,7 +84,7 @@ if ($null -eq $app)
 }
 else
 {
-	Write-Host "App Registration Update";
+	Write-Information "App Registration Update";
 }
 
 <# provision properties #>
@@ -87,10 +95,10 @@ $requiredResourceAccess = $manifest.RequiredResourceAccess | ForEach-Object { [M
 # get MicrosoftGraphOptionalClaims
 $optionalClaims = [MicrosoftGraphOptionalClaims]::DeserializeFromDictionary($manifest.OptionalClaims);
 
-Write-Host "App Registration Update Notes";
-Write-Host "App Registration Update OptionalClaims";
-Write-Host "App Registration Update RequiredResourceAccess";
-Write-Host "App Registration Update SignInAudience";
+Write-Information "App Registration Update Notes";
+Write-Information "App Registration Update OptionalClaims";
+Write-Information "App Registration Update RequiredResourceAccess";
+Write-Information "App Registration Update SignInAudience";
 
 Update-MgApplication -ApplicationId $app.Id `
 	-Notes $manifest.Notes `
@@ -100,7 +108,7 @@ Update-MgApplication -ApplicationId $app.Id `
 
 <# provision IdentifierUris #>
 
-Write-Host "App Registration Update IdentifierUris";
+Write-Information "App Registration Update IdentifierUris";
 
 $identifierUris = [array] ($manifest.IdentifierUris | ForEach-Object { $_ -f $app.AppId });
 
@@ -110,7 +118,7 @@ Update-MgApplication -ApplicationId $app.Id -IdentifierUris $identifierUris;
 
 if (![string]::IsNullOrEmpty($manifest.PublisherDomain))
 {
-	Write-Host "App Registration Update PublisherDomain";
+	Write-Information "App Registration Update PublisherDomain";
 
 	Update-MgApplication -ApplicationId $app.Id -PublisherDomain $manifest.PublisherDomain
 }
@@ -123,7 +131,7 @@ $api = [MicrosoftGraphApiApplication]::DeserializeFromDictionary($manifest.Api);
 $apiWithoutPreAuthorizedApplications = [MicrosoftGraphApiApplication]::DeserializeFromDictionary($manifest.Api);
 $apiWithoutPreAuthorizedApplications.PreAuthorizedApplications = $null;
 
-Write-Host "App Registration Update Api";
+Write-Information "App Registration Update Api";
 
 Update-MgApplication -ApplicationId $app.Id -Api $apiWithoutPreAuthorizedApplications
 
@@ -131,7 +139,7 @@ Update-MgApplication -ApplicationId $app.Id -Api $api
 
 <# provision Web #>
 
-Write-Host "App Registration Update Web";
+Write-Information "App Registration Update Web";
 
 $web = [MicrosoftGraphWebApplication]::DeserializeFromDictionary($manifest.Web);
 
@@ -142,7 +150,7 @@ Update-MgApplication -ApplicationId $app.Id -Web $web;
 # check if logo file name was specified
 if (![string]::IsNullOrEmpty($logoFileName))
 {
-	Write-Host "App Registration Update Logo";
+	Write-Information "App Registration Update Logo";
 
 	# there is a bug in Set-MgApplicationLogo, this is why we call raw api
 	Invoke-GraphRequest -Method PUT -Uri "https://graph.microsoft.com/v1.0/applications/$($app.Id)/logo" -InputFilePath $logoFileName -ContentType 'image/*';
@@ -156,7 +164,7 @@ $existingPasswordCredentialList = [IMicrosoftGraphPasswordCredential[]](Invoke-G
 # remove all existing passwords
 foreach ($passwordCredential in $existingPasswordCredentialList)
 {
-	Write-Host "App Registration Remove Secret [$($passwordCredential.DisplayName)]";
+	Write-Information "App Registration Remove Secret [$($passwordCredential.DisplayName)]";
 
 	Remove-MgApplicationPassword -ApplicationId $app.Id -KeyId $passwordCredential.KeyId;
 }
@@ -169,7 +177,7 @@ $secrets = @{};
 
 foreach ($passwordCredential in $passwordCredentialList)
 {
-	Write-Host "App Registration Add Secret [$($passwordCredential.DisplayName)]";
+	Write-Information "App Registration Add Secret [$($passwordCredential.DisplayName)]";
 
 	#add password
 	$newPasswordCredential = Add-MgApplicationPassword -ApplicationId $app.Id -PasswordCredential $passwordCredential;
@@ -195,7 +203,7 @@ $toAddOwnerIdList = $ownerIdList | Where-Object { $_ -notin $existingOwnerIdList
 
 foreach ($ownerId in $toAddOwnerIdList)
 {
-	Write-Host "App Registration Add Owner [$ownerId]";
+	Write-Information "App Registration Add Owner [$ownerId]";
 
 	# add owner
 	New-MgApplicationOwnerByRef -ApplicationId $app.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$ownerId"
@@ -209,7 +217,7 @@ $toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $currentPri
 
 foreach ($ownerId in $toRemoveOwnerIdList)
 {
-	Write-Host "App Registration Remove Owner [$ownerId]";
+	Write-Information "App Registration Remove Owner [$ownerId]";
 
 	# remove owner
 	Remove-MgApplicationOwnerByRef -ApplicationId $app.Id -DirectoryObjectId $ownerId;

@@ -1,19 +1,20 @@
 <#
-	author: Stas Sultanov
-	profile: https://www.linkedin.com/in/stas-sultanov
-	contact: stas.sultanov@outlook.com
-.DESCRIPTION
-	Create SQL Server User for Identity within the Entra tenant
+	author:		Stas Sultanov
+	contact:	stas.sultanov@outlook.com
+	gitHub:		https://github.com/stas-sultanov
+	profile:	https://www.linkedin.com/in/stas-sultanov
+.SYNOPSIS
+	Create SQL Server Database User for Identity within the Entra ID tenant.
 .PARAMETER serverFQDN
-	Fully Qualified Domain Name of the Azure Sql Server
+	Fully Qualified Domain Name of the Azure Sql Server.
 .PARAMETER databaseName
-	Name of the Database within the Azure Sql Server
+	Name of the Database within the Azure Sql Server.
 .PARAMETER databaseUserName
-	Name of the User to create for the Identity
+	Name of the User to create or update for the Identity.
 .PARAMETER databaseRoles
-	Collection of tha Database Roles to grant to the Identity
+	Collection of tha Database Roles to grant to the Identity.
 .PARAMETER identityObjectId
-	ObjectId of the Identity within the Entra tenant
+	ObjectId of the Identity within the Entra ID tenant.
 #>
 
 param
@@ -34,7 +35,7 @@ $command =
 
 "@
 
-# Add roles assigment to the command
+# Add roles assignment to the command
 foreach ($databaseRole in $databaseRoles)
 {
 	$command += "ALTER ROLE $databaseRole ADD MEMBER [$databaseUserName]`n"

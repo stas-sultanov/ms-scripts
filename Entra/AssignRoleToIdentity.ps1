@@ -1,9 +1,10 @@
 <#
-	author: Stas Sultanov
-	profile: https://www.linkedin.com/in/stas-sultanov
-	contact: stas.sultanov@outlook.com
-.DESCRIPTION
-	Assign Entra role to specified identity
+	author:		Stas Sultanov
+	contact:	stas.sultanov@outlook.com
+	gitHub:		https://github.com/stas-sultanov
+	profile:	https://www.linkedin.com/in/stas-sultanov
+.SYNOPSIS
+	Assign Entra ID Role to the specified Identity.
 .NOTES
 	Connect-AzAccount must be called before executing this script.
 	Uses Mg library beta.
@@ -11,9 +12,9 @@
 	- "Global Administrator"
 	- "Privileged Roles Administrator"
 .PARAMETER roleName
-	Name of the Entra Role
+	Name of the Entra ID Role.
 .PARAMETER identityObjectId
-	ObjectId of the Identity
+	ObjectId of the Identity within the Entra ID tenant.
 #>
 
 param

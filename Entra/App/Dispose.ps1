@@ -1,14 +1,15 @@
 <#
-	author: Stas Sultanov
-	profile: https://www.linkedin.com/in/stas-sultanov
-	contact: stas.sultanov@outlook.com
-.DESCRIPTION
-	Dispose Entra Application Registration.
+	author:		Stas Sultanov
+	contact:	stas.sultanov@outlook.com
+	gitHub:		https://github.com/stas-sultanov
+	profile:	https://www.linkedin.com/in/stas-sultanov
+.SYNOPSIS
+	Dispose an Application Registration within the Entra ID tenant.
 .NOTES
 	Connect-AzAccount must be called before executing this script.
 	Uses Mg library v1, also for Graph direct API calls.
 .PARAMETER objectId
-	Directory ObjectId of the Apllication Registration.
+	Directory ObjectId of the Application Registration.
 #>
 
 param

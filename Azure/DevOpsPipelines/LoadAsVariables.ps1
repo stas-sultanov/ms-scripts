@@ -1,14 +1,15 @@
 <#
-	author: Stas Sultanov
-	profile: https://www.linkedin.com/in/stas-sultanov
-	contact: stas.sultanov@outlook.com
-.DESCRIPTION
-	Loads file in JSON format as Azure DevOps Pipeline variables.
+	author:		Stas Sultanov
+	contact:	stas.sultanov@outlook.com
+	gitHub:		https://github.com/stas-sultanov
+	profile:	https://www.linkedin.com/in/stas-sultanov
+.SYNOPSIS
+	Load file in JSON format as Azure DevOps Pipeline variables.
 .PARAMETER fileName
 	Name of the file to load.
 .PARAMETER delimiter
-	Delimeter to use for variable name generation.
-.PARAMETER preix
+	Delimiter to use for variable name generation.
+.PARAMETER prefix
 	Prefix to use for variable name generation.
 #>
 
@@ -85,7 +86,7 @@ foreach ($item in $documentAsFlatDictionary.GetEnumerator())
 
 	$value = $item.Value;
 
-	Write-Host "##vso[task.setvariable variable=${key};]${value}";
+	Write-Host "##vso[task.SetVariable variable=${key};]${value}";
 
-	Write-Output "Loaded variable ${key}";
+	Write-Information "Loaded variable ${key}";
 }
