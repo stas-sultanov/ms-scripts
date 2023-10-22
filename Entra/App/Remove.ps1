@@ -4,7 +4,7 @@
 	gitHub:		https://github.com/stas-sultanov
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
-	Dispose an Application Registration within the Entra ID tenant.
+	Remove an Application Registration within the Entra ID tenant.
 .NOTES
 	Connect-AzAccount must be called before executing this script.
 	Uses Mg library v1, also for Graph direct API calls.

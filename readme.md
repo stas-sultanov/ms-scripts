@@ -23,10 +23,10 @@ Root
 │
 ├── Entra                                       # Scripts for Microsoft Entra services.
 │   ├── App
-│   │   ├── Dispose.ps1                         # Dispose an Application Registration within the Entra ID tenant.
-│   │   └── Provision.ps1                       # Provision an Application Registration within the Entra ID tenant.
+│   │   ├── Provision.ps1                       # Provision an Application Registration within the Entra ID tenant.
+│   │   └── Remove.ps1                          # Remove an Application Registration within the Entra ID tenant.
 │   └── AssignRoleToIdentity.ps1                # Assign Role to the specified Identity within the Entra ID tenant.
 │
-├── licens                                      # License file.
+├── license                                     # License file.
 └── readme.md                                   # This file.
 ```
