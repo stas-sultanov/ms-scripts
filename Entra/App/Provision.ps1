@@ -137,13 +137,13 @@ Update-MgApplication -ApplicationId $app.Id -Api $apiWithoutPreAuthorizedApplica
 
 Update-MgApplication -ApplicationId $app.Id -Api $api
 
-<# provision Web #>
+<# provision AppRoles #>
 
-Write-Information "App Registration Update Web";
+$appRoles = $manifest.AppRoles | ForEach-Object { [MicrosoftGraphAppRole]::DeserializeFromDictionary($_) };
 
-$web = [MicrosoftGraphWebApplication]::DeserializeFromDictionary($manifest.Web);
+Write-Information "App Registration Update AppRoles";
 
-Update-MgApplication -ApplicationId $app.Id -Web $web;
+Update-MgApplication -ApplicationId $app.Id -AppRoles $appRoles
 
 <# provision Logo #>
 
@@ -155,35 +155,6 @@ if (![string]::IsNullOrEmpty($logoFileName))
 	# there is a bug in Set-MgApplicationLogo, this is why we call raw api
 	Invoke-GraphRequest -Method PUT -Uri "https://graph.microsoft.com/v1.0/applications/$($app.Id)/logo" -InputFilePath $logoFileName -ContentType 'image/*';
 }
-
-<# provision PasswordCredentials #>
-
-# there is a no Get-MgApplicationPasswordCredentials, this is why we call raw api
-$existingPasswordCredentialList = [IMicrosoftGraphPasswordCredential[]](Invoke-GraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/applications/$($app.Id)/passwordCredentials").Value;
-
-# remove all existing passwords
-foreach ($passwordCredential in $existingPasswordCredentialList)
-{
-	Write-Information "App Registration Remove Secret [$($passwordCredential.DisplayName)]";
-
-	Remove-MgApplicationPassword -ApplicationId $app.Id -KeyId $passwordCredential.KeyId;
-}
-
-# get MicrosoftGraphPasswordCredential
-$passwordCredentialList = $manifest.PasswordCredentials | ForEach-Object { [MicrosoftGraphPasswordCredential]::DeserializeFromDictionary($_) };
-
-# add new secrets
-$secrets = @{};
-
-foreach ($passwordCredential in $passwordCredentialList)
-{
-	Write-Information "App Registration Add Secret [$($passwordCredential.DisplayName)]";
-
-	#add password
-	$newPasswordCredential = Add-MgApplicationPassword -ApplicationId $app.Id -PasswordCredential $passwordCredential;
-
-	$secrets[$newPasswordCredential.DisplayName] = $newPasswordCredential.SecretText;
-};
 
 <# provision Owners #>
 
@@ -222,6 +193,43 @@ foreach ($ownerId in $toRemoveOwnerIdList)
 	# remove owner
 	Remove-MgApplicationOwnerByRef -ApplicationId $app.Id -DirectoryObjectId $ownerId;
 }
+
+<# provision PasswordCredentials #>
+
+# there is a no Get-MgApplicationPasswordCredentials, this is why we call raw api
+$existingPasswordCredentialList = [IMicrosoftGraphPasswordCredential[]](Invoke-GraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/applications/$($app.Id)/passwordCredentials").Value;
+
+# remove all existing passwords
+foreach ($passwordCredential in $existingPasswordCredentialList)
+{
+	Write-Information "App Registration Remove Secret [$($passwordCredential.DisplayName)]";
+
+	Remove-MgApplicationPassword -ApplicationId $app.Id -KeyId $passwordCredential.KeyId;
+}
+
+# get MicrosoftGraphPasswordCredential
+$passwordCredentialList = $manifest.PasswordCredentials | ForEach-Object { [MicrosoftGraphPasswordCredential]::DeserializeFromDictionary($_) };
+
+# add new secrets
+$secrets = @{};
+
+foreach ($passwordCredential in $passwordCredentialList)
+{
+	Write-Information "App Registration Add Secret [$($passwordCredential.DisplayName)]";
+
+	#add password
+	$newPasswordCredential = Add-MgApplicationPassword -ApplicationId $app.Id -PasswordCredential $passwordCredential;
+
+	$secrets[$newPasswordCredential.DisplayName] = $newPasswordCredential.SecretText;
+};
+
+<# provision Web #>
+
+Write-Information "App Registration Update Web";
+
+$web = [MicrosoftGraphWebApplication]::DeserializeFromDictionary($manifest.Web);
+
+Update-MgApplication -ApplicationId $app.Id -Web $web;
 
 <# return result #>
 
