@@ -7,7 +7,6 @@
 	Assign Entra ID Role to the specified Identity.
 .NOTES
 	Connect-AzAccount must be called before executing this script.
-	Uses Mg library beta.
 	Can be executed only by identity with one of the following roles:
 	- "Global Administrator"
 	- "Privileged Roles Administrator"
@@ -23,10 +22,6 @@ param
 	[Parameter(Mandatory = $true)] [System.String] $identityObjectId
 )
 
-# GOD DAMN Microsoft! can not do anything right!
-# have to use beta, because Get-MgDirectoryRoleMember does not work as expected
-Select-MgProfile -Name "beta"
-
 # get access token
 $accessToken = Get-AzAccessToken -ResourceTypeName MSGraph;
 
@@ -36,35 +31,31 @@ $accessTokenSecured = $accessToken.Token | ConvertTo-SecureString -AsPlainText -
 # connect to Graph
 Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
 
-# try get role by name
-$role = Get-MgDirectoryRole | Where-Object { $_.displayName -eq $roleName }
+# get role template id by name
+$roleTemplate = Get-MgDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq $roleName }
+
+# try get role Id by name
+$role = Get-MgDirectoryRole | Where-Object { $_.RoleTemplateId -eq $roleTemplate.Id }
 
 # role does not exist
 if ($null -eq $role)
 {
-	# get role template by name
-	$roleTemplate = Get-MgDirectoryRoleTemplate | Where-Object { $_.displayName -eq $roleName }
-
 	# create role from the template
 	$role = New-MgDirectoryRole -RoleTemplateId $roleTemplate.Id
 
 	Write-Output "Role [$roleName] created from the template.";
 }
 
-# get all role members
-$roleMemberList = Get-MgDirectoryRoleMember -DirectoryRoleId $role.Id -All
+$assignments = Get-MgRoleManagementDirectoryRoleAssignment -All | Where-Object {($_.PrincipalId -eq $identityObjectId) -and ($_.RoleDefinitionId -eq $roleTemplate.Id)}
 
-# find identity within the role members list
-$roleMember = $roleMemberList | Where-Object { $_.Id -match $identityObjectId }
-
-if ($null -ne $roleMember)
+if ($null -ne $assignments)
 {
 	Write-Output "Identity with ObjectId [$identityObjectId] is already member of Role [$roleName].";
 }
 else
 {
 	# add identity to the role
-	New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -AdditionalProperties @{ "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$identityObjectId" }
+	New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$identityObjectId"
 
 	Write-Output "Identity with ObjectId [$identityObjectId] is assigned with Role [$roleName]."
 }
