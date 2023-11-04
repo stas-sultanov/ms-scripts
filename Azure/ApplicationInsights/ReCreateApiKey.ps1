@@ -5,6 +5,8 @@
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
 	Create or Reset ApiKey with name specified.
+.NOTES
+	Copyright © 2023 Stas Sultanov
 .PARAMETER resourceId
 	Id of the Application Insights Resource.
 .PARAMETER keyName

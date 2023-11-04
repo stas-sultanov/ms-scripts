@@ -5,11 +5,13 @@
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
 	Assign Entra ID Role to the specified Identity.
-.NOTES
+.DESCRIPTION
 	Connect-AzAccount must be called before executing this script.
 	Can be executed only by identity with one of the following roles:
 	- "Global Administrator"
 	- "Privileged Roles Administrator"
+.NOTES
+	Copyright © 2023 Stas Sultanov
 .PARAMETER roleName
 	Name of the Entra ID Role.
 .PARAMETER identityObjectId
@@ -35,7 +37,7 @@ Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
 $roleTemplate = Get-MgDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq $roleName }
 
 # try get role Id by name
-$role = Get-MgDirectoryRole | Where-Object { $_.RoleTemplateId -eq $roleTemplate.Id }
+$role = Get-MgDirectoryRole -Filter "RoleTemplateId eq '$($roleTemplate.Id)'"
 
 # role does not exist
 if ($null -eq $role)

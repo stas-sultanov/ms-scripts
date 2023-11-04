@@ -5,6 +5,8 @@
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
 	Set User access mode for the specified Sql Server Database.
+.NOTES
+	Copyright © 2023 Stas Sultanov
 .PARAMETER serverFQDN
 	Fully Qualified Domain Name of the Sql Server.
 .PARAMETER databaseName

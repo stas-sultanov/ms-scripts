@@ -5,10 +5,12 @@
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
 	Provision an Application Registration within the Entra ID tenant.
-.NOTES
+.DESCRIPTION
 	Script assumes that names of the applications are unique within the Entra ID tenant.
 	Connect-AzAccount must be called before executing this script.
 	Uses Mg library v1, also for Graph direct API calls.
+.NOTES
+	Copyright © 2023 Stas Sultanov
 .PARAMETER appName
 	Name of the Application.
 .PARAMETER manifestFileName

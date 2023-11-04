@@ -5,6 +5,8 @@
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
 	Enable HTTPS for all CDN profiles.
+.NOTES
+	Copyright © 2023 Stas Sultanov
 .PARAMETER resourceGroupName
 	Name of the resource group.
 #>

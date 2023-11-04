@@ -5,9 +5,11 @@
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
 	Remove an Application Registration within the Entra ID tenant.
-.NOTES
+.DESCRIPTION
 	Connect-AzAccount must be called before executing this script.
 	Uses Mg library v1, also for Graph direct API calls.
+.NOTES
+	Copyright © 2023 Stas Sultanov
 .PARAMETER objectId
 	Directory ObjectId of the Application Registration.
 #>
