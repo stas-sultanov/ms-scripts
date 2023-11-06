@@ -40,6 +40,9 @@ param
 # get access token
 $accessToken = Get-AzAccessToken -ResourceTypeName MSGraph;
 
+# get objectId of the service principal that executes this script
+$currentPrincipalObjectId = (Get-AzADServicePrincipal -ApplicationId $accessToken.UserId).Id;
+
 # secure access token
 $accessTokenSecured = $accessToken.Token | ConvertTo-SecureString -AsPlainText -Force;
 
@@ -171,7 +174,7 @@ if ($null -ne $manifest.Owners)
 # get existing owners
 $existingOwnerIdList = Get-MgApplicationOwner -ApplicationId $app.Id | Select-Object -ExpandProperty Id;
 
-# get owners to add by excluding existing owners from specified in manifest
+# get owners to add, by excluding existing owners from specified in manifest
 $toAddOwnerIdList = $ownerIdList | Where-Object { $_ -notin $existingOwnerIdList };
 
 foreach ($ownerId in $toAddOwnerIdList)
@@ -181,9 +184,6 @@ foreach ($ownerId in $toAddOwnerIdList)
 	# add owner
 	New-MgApplicationOwnerByRef -ApplicationId $app.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$ownerId"
 }
-
-# get objectId of the service principal that executes this script
-$currentPrincipalObjectId = (Get-AzADServicePrincipal -ApplicationId $accessToken.UserId).Id;
 
 # get owners to remove, excluding current identity
 $toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $currentPrincipalObjectId) -and ($_ -notin $ownerIdList) };

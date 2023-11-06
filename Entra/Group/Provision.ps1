@@ -10,8 +10,6 @@
 	Uses Microsoft.Graph Powershell module.
 .NOTES
 	Copyright © 2023 Stas Sultanov
-.PARAMETER accessToken
-	A bearer token for Microsoft Graph service.
 .PARAMETER groupName
 	Name of the Application.
 .PARAMETER manifestFileName
@@ -25,12 +23,17 @@ using namespace Microsoft.Graph.PowerShell.Models;
 
 param
 (
-	[parameter(Mandatory = $true)] [String] $accessToken,
 	[parameter(Mandatory = $true)] [String] $groupName,
 	[parameter(Mandatory = $true)] [String] $manifestFileName
 )
 
 <# implementation #>
+
+# get access token
+$accessToken = Get-AzAccessToken -ResourceTypeName MSGraph;
+
+# get objectId of the service principal that executes this script
+$currentPrincipalObjectId = (Get-AzADServicePrincipal -ApplicationId $accessToken.UserId).Id;
 
 # secure access token
 $accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
@@ -65,8 +68,6 @@ if ($null -eq $group)
 		IsAssignableToRole		= $false
 		MailEnabled				= $false
 		MailNickname			= $groupName
-		"Members@odata.bind"	= $manifest.Members
-		"Owners@odata.bind"		= $manifest.Owners
 		SecurityEnabled			= $true
 	}
 
@@ -76,13 +77,45 @@ else
 {
 	Write-Host "Group Update";
 
-	$param = @{
-		Description				= $manifest.Description
-#		"Members@odata.bind"	= $manifest.Members
-#		"Owners@odata.bind"		= $manifest.Owners
+	if ($group.Description -ne $manifest.Description)
+	{
+		$group = Update-MgGroup -GroupId $group.Id -Description $manifest.Description
 	}
+}
 
-	$group = Update-MgGroup -GroupId $group.Id -BodyParameter $param
+<# provision Owners #>
+
+# get owners from manifest
+$ownerIdList = @();
+
+if ($null -ne $manifest.Owners)
+{
+	$ownerIdList = $manifest.Owners | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id;
+}
+
+# get existing owners
+$existingOwnerIdList = Get-MgGroupOwner -GroupId $group.Id | Select-Object -ExpandProperty Id;
+
+# get owners to add, by excluding existing owners from specified in manifest
+$toAddOwnerIdList = $ownerIdList | Where-Object { $_ -notin $existingOwnerIdList };
+
+foreach ($ownerId in $toAddOwnerIdList)
+{
+	Write-Host "Group Add Owner [$ownerId]";
+
+	# add owner
+	New-MgGroupOwnerByRef -GroupId $group.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$ownerId"
+}
+
+# get owners to remove, excluding current identity
+$toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $currentPrincipalObjectId) -and ($_ -notin $ownerIdList) };
+
+foreach ($ownerId in $toRemoveOwnerIdList)
+{
+	Write-Host "Group Remove Owner [$ownerId]";
+
+	# remove owner
+	Remove-MgGroupOwnerByRef -GroupId $group.Id -DirectoryObjectId $ownerId;
 }
 
 <# return result #>
