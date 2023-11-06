@@ -7,7 +7,7 @@
 	Remove an Application Registration within the Entra ID tenant.
 .DESCRIPTION
 	Connect-AzAccount must be called before executing this script.
-	Uses Mg library v1, also for Graph direct API calls.
+	Uses Microsoft.Graph Powershell module.
 .NOTES
 	Copyright © 2023 Stas Sultanov
 .PARAMETER objectId

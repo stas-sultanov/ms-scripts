@@ -8,7 +8,7 @@
 .DESCRIPTION
 	Script assumes that names of the applications are unique within the Entra ID tenant.
 	Connect-AzAccount must be called before executing this script.
-	Uses Mg library v1, also for Graph direct API calls.
+	Uses Microsoft.Graph Powershell module.
 .NOTES
 	Copyright © 2023 Stas Sultanov
 .PARAMETER appName
@@ -54,13 +54,13 @@ $manifest = Get-Content $manifestFileName | out-string | ConvertFrom-Json -AsHas
 
 if ([string]::IsNullOrEmpty($manifest.Id))
 {
-	# get all applications by name
+	# get all Applications Registrations with DisplayName specified
 	$app = Get-MgApplication -Filter "DisplayName eq '$appName'";
 
-	# check if there is more then one application
+	# check if there is more then one app registration
 	if ($app -is [array])
 	{
-		throw "Directory query returned more than one App Registration with DisplayName [$appName].";
+		throw "Directory query returned more than one App Registration with DisplayName eq [$appName].";
 	}
 }
 else
