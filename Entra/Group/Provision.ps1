@@ -99,7 +99,7 @@ $memberIdList = [List[String]] ($manifest.Members | ForEach-Object { [MicrosoftG
 $memberIdList.AddRange($extraMembers);
 
 # get existing members
-$existingMemberIdList = Get-MgGroupMember -GroupId $group.Id | Select-Object -ExpandProperty Id;
+$existingMemberIdList = Get-MgBetaGroupMember -GroupId $group.Id | Select-Object -ExpandProperty Id;
 
 # get members to add, by excluding existing members from specified in manifest
 $toAddMemberIdList = $memberIdList | Where-Object { $_ -notin $existingMemberIdList };
@@ -132,7 +132,7 @@ $ownerIdList = [List[String]] ($manifest.Owners | ForEach-Object { [MicrosoftGra
 $ownerIdList.AddRange($extraOwners);
 
 # get existing owners
-$existingOwnerIdList = Get-MgGroupOwner -GroupId $group.Id | Select-Object -ExpandProperty Id;
+$existingOwnerIdList = Get-MgBetaGroupOwner -GroupId $group.Id | Select-Object -ExpandProperty Id;
 
 # get owners to add, by excluding existing owners from specified in manifest
 $toAddOwnerIdList = $ownerIdList | Where-Object { $_ -notin $existingOwnerIdList };
