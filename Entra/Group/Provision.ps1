@@ -24,7 +24,9 @@ using namespace Microsoft.Graph.PowerShell.Models;
 param
 (
 	[parameter(Mandatory = $true)] [String] $groupName,
-	[parameter(Mandatory = $true)] [String] $manifestFileName
+	[parameter(Mandatory = $true)] [String] $manifestFileName,
+	[parameter(Mandatory = $false)] [Boolean] $addCallerAsMember = $true,
+	[parameter(Mandatory = $false)] [Boolean] $addCallerAsOwner = $true
 )
 
 <# implementation #>
@@ -32,14 +34,14 @@ param
 # get access token
 $accessToken = Get-AzAccessToken -ResourceTypeName MSGraph;
 
-# get objectId of the service principal that executes this script
-$currentPrincipalObjectId = (Get-AzADServicePrincipal -ApplicationId $accessToken.UserId).Id;
-
 # secure access token
-$accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
+$accessTokenSecured = $accessToken.Token | ConvertTo-SecureString -AsPlainText -Force;
 
-# connect to Microsoft Graph
+# connect to Graph
 Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
+
+# get objectId of the service principal that executes this script
+$currentIdentity = Invoke-GraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/me" -OutputType PSObject
 
 <# read manifest file #>
 
@@ -83,14 +85,49 @@ else
 	}
 }
 
+<# provision Members #>
+
+# get members from manifest
+$memberIdList = [Collections.Generic.List[String]] ($manifest.Members | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
+
+if ($true -eq $addCallerAsMember)
+{
+	$memberIdList.Add( $currentIdentity.Id );
+}
+
+# get existing members
+$existingMemberIdList = Get-MgGroupMember -GroupId $group.Id | Select-Object -ExpandProperty Id;
+
+# get members to add, by excluding existing members from specified in manifest
+$toAddMemberIdList = $memberIdList | Where-Object { $_ -notin $existingMemberIdList };
+
+foreach ($memberId in $toAddMemberIdList)
+{
+	Write-Host "Group Add Member [$memberId]";
+
+	# add member
+	New-MgGroupMemberByRef -GroupId $group.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$memberId"
+}
+
+# get members to remove, excluding current identity
+$toRemoveMemberIdList = $existingMemberIdList | Where-Object { $_ -notin $memberIdList };
+
+foreach ($memberId in $toRemoveMemberIdList)
+{
+	Write-Host "Group Remove Member [$memberId]";
+
+	# remove owner
+	Remove-MgGroupMemberByRef -GroupId $group.Id -DirectoryObjectId $memberId;
+}
+
 <# provision Owners #>
 
 # get owners from manifest
-$ownerIdList = @();
+$ownerIdList = [Collections.Generic.List[String]] ($manifest.Owners | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
 
-if ($null -ne $manifest.Owners)
+if ($true -eq $addCallerAsOwner)
 {
-	$ownerIdList = $manifest.Owners | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id;
+	$ownerIdList.Add( $currentIdentity.Id );
 }
 
 # get existing owners
@@ -108,7 +145,7 @@ foreach ($ownerId in $toAddOwnerIdList)
 }
 
 # get owners to remove, excluding current identity
-$toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $currentPrincipalObjectId) -and ($_ -notin $ownerIdList) };
+$toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { $_ -notin $ownerIdList };
 
 foreach ($ownerId in $toRemoveOwnerIdList)
 {
