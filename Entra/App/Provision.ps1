@@ -41,7 +41,7 @@ param
 <# implementation #>
 
 # secure access token
-$accessTokenSecured = $accessToken.Token | ConvertTo-SecureString -AsPlainText -Force;
+$accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
 
 # connect to Graph
 Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
