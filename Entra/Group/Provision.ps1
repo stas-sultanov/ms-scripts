@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Provision a Group within the Entra ID tenant.
 .DESCRIPTION
-	Script assumes that names of the groups are unique within the Entra ID tenant.
+	Script assumes that names of groups are unique within the Entra ID tenant.
 	Uses Microsoft.Graph Powershell module.
 .NOTES
 	Copyright © 2023 Stas Sultanov
@@ -19,15 +19,16 @@
 	Group Object Id.
 #>
 
+using namespace System.Collections.Generic;
 using namespace Microsoft.Graph.PowerShell.Models;
 
 param
 (
-	[parameter(Mandatory = $true)] [String] $accessToken,
-	[parameter(Mandatory = $true)] [String] $groupName,
-	[parameter(Mandatory = $true)] [String] $manifestFileName,
-	[parameter(Mandatory = $false)] [String] $memberObjectId = $null,
-	[parameter(Mandatory = $false)] [String] $ownerObjectId = $null
+	[parameter(Mandatory = $true)]	[String]	$accessToken,
+	[parameter(Mandatory = $false)]	[String[]]	$extraMembers = @(),
+	[parameter(Mandatory = $false)]	[String[]]	$extraOwners = @(),
+	[parameter(Mandatory = $true)]	[String]	$groupName,
+	[parameter(Mandatory = $true)]	[String]	$manifestFileName
 )
 
 <# implementation #>
@@ -44,7 +45,7 @@ $manifest = Get-Content $manifestFileName | out-string | ConvertFrom-Json -AsHas
 
 <# get or create group #>
 
-# get all groups with DisplayName specified
+# get all groups with DisplayName eq to specified
 $group = Get-MgGroup -Filter "DisplayName eq '$groupName'";
 
 # check if there is more then one group
@@ -78,19 +79,17 @@ else
 	{
 		Write-Host "Group Update Description";
 
-		$group = Update-MgGroup -GroupId $group.Id -Description $manifest.Description
+		$group = Update-MgGroup -GroupId $group.Id -Description $manifest.Description;
 	}
 }
 
 <# provision Members #>
 
 # get members from manifest
-$memberIdList = [Collections.Generic.List[String]] ($manifest.Members | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
+$memberIdList = [List[String]] ($manifest.Members | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
 
-if (![string]::IsNullOrEmpty($memberObjectId))
-{
-	$memberIdList.Add( $memberObjectId );
-}
+# add extra members specfied
+$memberIdList.AddRange($extraMembers);
 
 # get existing members
 $existingMemberIdList = Get-MgGroupMember -GroupId $group.Id | Select-Object -ExpandProperty Id;
@@ -102,30 +101,28 @@ foreach ($memberId in $toAddMemberIdList)
 {
 	Write-Host "Group Add Member [$memberId]";
 
-	# add member
-	New-MgGroupMemberByRef -GroupId $group.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$memberId"
+	# add
+	New-MgGroupMember -GroupId $group.Id -DirectoryObjectId $memberId;
 }
 
-# get members to remove, excluding current identity
+# get members to remove
 $toRemoveMemberIdList = $existingMemberIdList | Where-Object { $_ -notin $memberIdList };
 
 foreach ($memberId in $toRemoveMemberIdList)
 {
 	Write-Host "Group Remove Member [$memberId]";
 
-	# remove owner
+	# remove
 	Remove-MgGroupMemberByRef -GroupId $group.Id -DirectoryObjectId $memberId;
 }
 
 <# provision Owners #>
 
 # get owners from manifest
-$ownerIdList = [Collections.Generic.List[String]] ($manifest.Owners | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
+$ownerIdList = [List[String]] ($manifest.Owners | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
 
-if (![string]::IsNullOrEmpty($ownerObjectId))
-{
-	$ownerIdList.Add( $ownerObjectId );
-}
+# add extra owners specified
+$ownerIdList.AddRange($extraOwners);
 
 # get existing owners
 $existingOwnerIdList = Get-MgGroupOwner -GroupId $group.Id | Select-Object -ExpandProperty Id;
@@ -138,7 +135,7 @@ foreach ($ownerId in $toAddOwnerIdList)
 	Write-Host "Group Add Owner [$ownerId]";
 
 	# add owner
-	New-MgGroupOwnerByRef -GroupId $group.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$ownerId"
+	New-MgGroupOwner -GroupId $group.Id -DirectoryObjectId $ownerId;
 }
 
 # get owners to remove, excluding current identity
