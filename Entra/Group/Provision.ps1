@@ -23,25 +23,20 @@ using namespace Microsoft.Graph.PowerShell.Models;
 
 param
 (
+	[parameter(Mandatory = $true)] [String] $accessToken,
 	[parameter(Mandatory = $true)] [String] $groupName,
 	[parameter(Mandatory = $true)] [String] $manifestFileName,
-	[parameter(Mandatory = $false)] [Boolean] $addCallerAsMember = $true,
-	[parameter(Mandatory = $false)] [Boolean] $addCallerAsOwner = $true
+	[parameter(Mandatory = $false)] [String] $memberObjectId = $null,
+	[parameter(Mandatory = $false)] [String] $ownerObjectId = $null
 )
 
 <# implementation #>
 
-# get access token
-$accessToken = Get-AzAccessToken -ResourceTypeName MSGraph;
-
 # secure access token
-$accessTokenSecured = $accessToken.Token | ConvertTo-SecureString -AsPlainText -Force;
+$accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
 
 # connect to Graph
 Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
-
-# get objectId of the service principal that executes this script
-$currentIdentity = Invoke-GraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/me" -OutputType PSObject
 
 <# read manifest file #>
 
@@ -81,6 +76,8 @@ else
 
 	if ($group.Description -ne $manifest.Description)
 	{
+		Write-Host "Group Update Description";
+
 		$group = Update-MgGroup -GroupId $group.Id -Description $manifest.Description
 	}
 }
@@ -90,9 +87,9 @@ else
 # get members from manifest
 $memberIdList = [Collections.Generic.List[String]] ($manifest.Members | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
 
-if ($true -eq $addCallerAsMember)
+if (![string]::IsNullOrEmpty($memberObjectId))
 {
-	$memberIdList.Add( $currentIdentity.Id );
+	$memberIdList.Add( $memberObjectId );
 }
 
 # get existing members
@@ -125,9 +122,9 @@ foreach ($memberId in $toRemoveMemberIdList)
 # get owners from manifest
 $ownerIdList = [Collections.Generic.List[String]] ($manifest.Owners | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
 
-if ($true -eq $addCallerAsOwner)
+if (![string]::IsNullOrEmpty($ownerObjectId))
 {
-	$ownerIdList.Add( $currentIdentity.Id );
+	$ownerIdList.Add( $ownerObjectId );
 }
 
 # get existing owners
