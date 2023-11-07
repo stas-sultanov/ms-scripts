@@ -45,19 +45,19 @@ if ($null -eq $role)
 	# create role from the template
 	$role = New-MgDirectoryRole -RoleTemplateId $roleTemplate.Id
 
-	Write-Output "Role [$roleName] created from the template.";
+	Write-Host "Role [$roleName] created from the template.";
 }
 
 $assignments = Get-MgRoleManagementDirectoryRoleAssignment -All | Where-Object {($_.PrincipalId -eq $identityObjectId) -and ($_.RoleDefinitionId -eq $roleTemplate.Id)}
 
 if ($null -ne $assignments)
 {
-	Write-Output "Identity with ObjectId [$identityObjectId] is already member of Role [$roleName].";
+	Write-Host "Identity with ObjectId [$identityObjectId] is already member of Role [$roleName].";
 }
 else
 {
 	# add identity to the role
 	New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$identityObjectId"
 
-	Write-Output "Identity with ObjectId [$identityObjectId] is assigned with Role [$roleName]."
+	Write-Host "Identity with ObjectId [$identityObjectId] is assigned with Role [$roleName]."
 }

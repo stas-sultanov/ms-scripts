@@ -64,14 +64,14 @@ if ($app -is [array])
 # check if app not exist
 if ($null -eq $app)
 {
-	Write-Information "App Registration Create";
+	Write-Host "App Registration Create";
 
 	# create new app registration
 	$app = New-MgApplication -DisplayName $name;
 }
 else
 {
-	Write-Information "App Registration Update";
+	Write-Host "App Registration Update";
 }
 
 <# provision properties #>
@@ -82,10 +82,10 @@ $requiredResourceAccess = $manifest.RequiredResourceAccess | ForEach-Object { [M
 # get MicrosoftGraphOptionalClaims
 $optionalClaims = [MicrosoftGraphOptionalClaims]::DeserializeFromDictionary($manifest.OptionalClaims);
 
-Write-Information "App Registration Update Notes";
-Write-Information "App Registration Update OptionalClaims";
-Write-Information "App Registration Update RequiredResourceAccess";
-Write-Information "App Registration Update SignInAudience";
+Write-Host "App Registration Update Notes";
+Write-Host "App Registration Update OptionalClaims";
+Write-Host "App Registration Update RequiredResourceAccess";
+Write-Host "App Registration Update SignInAudience";
 
 Update-MgApplication -ApplicationId $app.Id `
 	-Notes $manifest.Notes `
@@ -95,7 +95,7 @@ Update-MgApplication -ApplicationId $app.Id `
 
 <# provision IdentifierUris #>
 
-Write-Information "App Registration Update IdentifierUris";
+Write-Host "App Registration Update IdentifierUris";
 
 $identifierUris = [array] ($manifest.IdentifierUris | ForEach-Object { $_ -f $app.AppId });
 
@@ -105,7 +105,7 @@ Update-MgApplication -ApplicationId $app.Id -IdentifierUris $identifierUris;
 
 if (![string]::IsNullOrEmpty($manifest.PublisherDomain))
 {
-	Write-Information "App Registration Update PublisherDomain";
+	Write-Host "App Registration Update PublisherDomain";
 
 	Update-MgApplication -ApplicationId $app.Id -PublisherDomain $manifest.PublisherDomain
 }
@@ -118,7 +118,7 @@ $api = [MicrosoftGraphApiApplication]::DeserializeFromDictionary($manifest.Api);
 $apiWithoutPreAuthorizedApplications = [MicrosoftGraphApiApplication]::DeserializeFromDictionary($manifest.Api);
 $apiWithoutPreAuthorizedApplications.PreAuthorizedApplications = $null;
 
-Write-Information "App Registration Update Api";
+Write-Host "App Registration Update Api";
 
 Update-MgApplication -ApplicationId $app.Id -Api $apiWithoutPreAuthorizedApplications
 
@@ -128,7 +128,7 @@ Update-MgApplication -ApplicationId $app.Id -Api $api
 
 $appRoles = $manifest.AppRoles | ForEach-Object { [MicrosoftGraphAppRole]::DeserializeFromDictionary($_) };
 
-Write-Information "App Registration Update AppRoles";
+Write-Host "App Registration Update AppRoles";
 
 Update-MgApplication -ApplicationId $app.Id -AppRoles $appRoles
 
@@ -137,7 +137,7 @@ Update-MgApplication -ApplicationId $app.Id -AppRoles $appRoles
 # check if logo file name was specified
 if (![string]::IsNullOrEmpty($logoFileName))
 {
-	Write-Information "App Registration Update Logo";
+	Write-Host "App Registration Update Logo";
 
 	# there is a bug in Set-MgApplicationLogo, this is why we call raw api
 	Invoke-GraphRequest -Method PUT -Uri "https://graph.microsoft.com/v1.0/applications/$($app.Id)/logo" -InputFilePath $logoFileName -ContentType 'image/*';
@@ -161,7 +161,7 @@ $toAddOwnerIdList = $ownerIdList | Where-Object { $_ -notin $existingOwnerIdList
 
 foreach ($ownerId in $toAddOwnerIdList)
 {
-	Write-Information "App Registration Add Owner [$ownerId]";
+	Write-Host "App Registration Add Owner [$ownerId]";
 
 	# add owner
 	New-MgApplicationOwnerByRef -ApplicationId $app.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$ownerId"
@@ -172,7 +172,7 @@ $toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $identityOb
 
 foreach ($ownerId in $toRemoveOwnerIdList)
 {
-	Write-Information "App Registration Remove Owner [$ownerId]";
+	Write-Host "App Registration Remove Owner [$ownerId]";
 
 	# remove owner
 	Remove-MgApplicationOwnerByRef -ApplicationId $app.Id -DirectoryObjectId $ownerId;
@@ -186,7 +186,7 @@ $existingPasswordCredentialList = [IMicrosoftGraphPasswordCredential[]](Invoke-G
 # remove all existing passwords
 foreach ($passwordCredential in $existingPasswordCredentialList)
 {
-	Write-Information "App Registration Remove Secret [$($passwordCredential.DisplayName)]";
+	Write-Host "App Registration Remove Secret [$($passwordCredential.DisplayName)]";
 
 	Remove-MgApplicationPassword -ApplicationId $app.Id -KeyId $passwordCredential.KeyId;
 }
@@ -199,7 +199,7 @@ $secrets = @{};
 
 foreach ($passwordCredential in $passwordCredentialList)
 {
-	Write-Information "App Registration Add Secret [$($passwordCredential.DisplayName)]";
+	Write-Host "App Registration Add Secret [$($passwordCredential.DisplayName)]";
 
 	#add password
 	$newPasswordCredential = Add-MgApplicationPassword -ApplicationId $app.Id -PasswordCredential $passwordCredential;
@@ -209,7 +209,7 @@ foreach ($passwordCredential in $passwordCredentialList)
 
 <# provision Web #>
 
-Write-Information "App Registration Update Web";
+Write-Host "App Registration Update Web";
 
 $web = [MicrosoftGraphWebApplication]::DeserializeFromDictionary($manifest.Web);
 

@@ -7,7 +7,7 @@
 	Provision a Group within the Entra ID tenant.
 .DESCRIPTION
 	Script assumes that names of groups are unique within the Entra ID tenant.
-	Uses Microsoft.Graph Powershell module.
+	Uses Microsoft.Graph.Beta Powershell module.
 .NOTES
 	Copyright © 2023 Stas Sultanov
 .PARAMETER accessToken

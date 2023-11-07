@@ -39,7 +39,7 @@ if ($app -is [array])
 	throw "Directory query returned several App Registrations with ObjectId [$objectId]."
 }
 
-Write-Output "App Registration Delete";
+Write-Host "App Registration Delete";
 
 # remove application
 Remove-MgApplication -ApplicationId $objectId;
