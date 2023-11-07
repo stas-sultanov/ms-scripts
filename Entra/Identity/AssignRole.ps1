@@ -4,7 +4,7 @@
 	gitHub:		https://github.com/stas-sultanov
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
-	Assign Entra ID Role to the specified Identity.
+	Assign Identity to the specified Role within the Entra ID tenant.
 .DESCRIPTION
 	Connect-AzAccount must be called before executing this script.
 	Can be executed only by identity with one of the following roles:
@@ -12,16 +12,16 @@
 	- "Privileged Roles Administrator"
 .NOTES
 	Copyright © 2023 Stas Sultanov
-.PARAMETER roleName
-	Name of the Entra ID Role.
 .PARAMETER identityObjectId
 	ObjectId of the Identity within the Entra ID tenant.
+.PARAMETER roleName
+	Name of the Role within the Entra ID tenant.
 #>
 
 param
 (
-	[Parameter(Mandatory = $true)] [System.String] $roleName,
-	[Parameter(Mandatory = $true)] [System.String] $identityObjectId
+	[Parameter(Mandatory = $true)] [System.String] $identityObjectId,
+	[Parameter(Mandatory = $true)] [System.String] $roleName
 )
 
 # get access token

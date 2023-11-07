@@ -12,6 +12,8 @@
 	Copyright © 2023 Stas Sultanov
 .PARAMETER accessToken
 	Bearer token to access MS Graph.
+.PARAMETER identityObjectId
+	ObjectId of the Identity which calls this script.
 .PARAMETER logoFileName
 	Name of the Logo file, including path.
 .PARAMETER manifestFileName
