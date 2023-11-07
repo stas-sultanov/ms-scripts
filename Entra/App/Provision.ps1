@@ -7,22 +7,23 @@
 	Provision an Application Registration within the Entra ID tenant.
 .DESCRIPTION
 	Script assumes that names of the applications are unique within the Entra ID tenant.
-	Connect-AzAccount must be called before executing this script.
 	Uses Microsoft.Graph Powershell module.
 .NOTES
 	Copyright © 2023 Stas Sultanov
-.PARAMETER appName
-	Name of the Application.
-.PARAMETER manifestFileName
-	Name of the Manifest file, including path.
+.PARAMETER accessToken
+	Bearer token to access MS Graph.
 .PARAMETER logoFileName
 	Name of the Logo file, including path.
+.PARAMETER manifestFileName
+	Name of the Manifest file, including path.
+.PARAMETER name
+	Name of the Application.
 .OUTPUTS
 	System.Object
 	On object with following fields:
-		- ClientId
+		- ClientId:System.Guid
 		- IdentifierUris
-		- ObjectId
+		- ObjectId:System.Guid
 		- Secrets
 #>
 
@@ -30,18 +31,14 @@ using namespace Microsoft.Graph.PowerShell.Models;
 
 param
 (
-	[parameter(Mandatory = $true)] [String] $appName,
-	[parameter(Mandatory = $true)] [String] $manifestFileName,
-	[parameter(Mandatory = $true)] [String] $logoFileName
+	[parameter(Mandatory = $true)]	[String]	$accessToken,
+	[parameter(Mandatory = $true)]	[String]	$identityObjectId,
+	[parameter(Mandatory = $true)]	[String]	$logoFileName,
+	[parameter(Mandatory = $true)]	[String]	$manifestFileName,
+	[parameter(Mandatory = $true)]	[String]	$name
 )
 
 <# implementation #>
-
-# get access token
-$accessToken = Get-AzAccessToken -ResourceTypeName MSGraph;
-
-# get objectId of the service principal that executes this script
-$currentPrincipalObjectId = (Get-AzADServicePrincipal -ApplicationId $accessToken.UserId).Id;
 
 # secure access token
 $accessTokenSecured = $accessToken.Token | ConvertTo-SecureString -AsPlainText -Force;
@@ -55,21 +52,13 @@ $manifest = Get-Content $manifestFileName | out-string | ConvertFrom-Json -AsHas
 
 <# get or create application #>
 
-if ([string]::IsNullOrEmpty($manifest.Id))
-{
-	# get all Applications Registrations with DisplayName specified
-	$app = Get-MgApplication -Filter "DisplayName eq '$appName'";
+# get all Applications Registrations with DisplayName eq specified
+$app = Get-MgApplication -Filter "DisplayName eq '$name'";
 
-	# check if there is more then one app registration
-	if ($app -is [array])
-	{
-		throw "Directory query returned more than one App Registration with DisplayName eq [$appName].";
-	}
-}
-else
+# check if there is more then one app registration
+if ($app -is [array])
 {
-	# get application
-	$app = Get-MgApplicationByAppId -AppId $manifest.Id;
+	throw "Directory query returned more than one App Registration with DisplayName eq [$name].";
 }
 
 # check if app not exist
@@ -78,14 +67,7 @@ if ($null -eq $app)
 	Write-Information "App Registration Create";
 
 	# create new app registration
-	if ([string]::IsNullOrEmpty($manifest.Id))
-	{
-		$app = New-MgApplication -DisplayName $appName;
-	}
-	else
-	{
-		$app = New-MgApplication -AppId $manifest.Id -DisplayName $appName;
-	}
+	$app = New-MgApplication -DisplayName $name;
 }
 else
 {
@@ -186,7 +168,7 @@ foreach ($ownerId in $toAddOwnerIdList)
 }
 
 # get owners to remove, excluding current identity
-$toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $currentPrincipalObjectId) -and ($_ -notin $ownerIdList) };
+$toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $identityObjectId) -and ($_ -notin $ownerIdList) };
 
 foreach ($ownerId in $toRemoveOwnerIdList)
 {

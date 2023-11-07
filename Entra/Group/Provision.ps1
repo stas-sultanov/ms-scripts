@@ -10,13 +10,20 @@
 	Uses Microsoft.Graph Powershell module.
 .NOTES
 	Copyright © 2023 Stas Sultanov
-.PARAMETER groupName
-	Name of the Application.
+.PARAMETER accessToken
+	Bearer token to access MS Graph.
+.PARAMETER extraMembers
+	List of extra Object Identifiers of the Identities within the Entra ID tenant to add as Member to the Group.
+.PARAMETER extraOwners
+	List of extra Object Identifiers of the Identities within the Entra ID tenant to add as Owner to the Group.
 .PARAMETER manifestFileName
 	Name of the Manifest file, including path.
+.PARAMETER name
+	Name of the Group.
 .OUTPUTS
-	System.Guid
-	Group Object Id.
+	System.Object
+	On object with following fields:
+		Id:System.Guid
 #>
 
 using namespace System.Collections.Generic;
@@ -27,8 +34,8 @@ param
 	[parameter(Mandatory = $true)]	[String]	$accessToken,
 	[parameter(Mandatory = $false)]	[String[]]	$extraMembers = @(),
 	[parameter(Mandatory = $false)]	[String[]]	$extraOwners = @(),
-	[parameter(Mandatory = $true)]	[String]	$groupName,
-	[parameter(Mandatory = $true)]	[String]	$manifestFileName
+	[parameter(Mandatory = $true)]	[String]	$manifestFileName,
+	[parameter(Mandatory = $true)]	[String]	$name
 )
 
 <# implementation #>
@@ -46,12 +53,12 @@ $manifest = Get-Content $manifestFileName | out-string | ConvertFrom-Json -AsHas
 <# get or create group #>
 
 # get all groups with DisplayName eq to specified
-$group = Get-MgGroup -Filter "DisplayName eq '$groupName'";
+$group = Get-MgGroup -Filter "DisplayName eq '$name'";
 
 # check if there is more then one group
 if ($group -is [array])
 {
-	throw "Directory query returned more than one Group with DisplayName eq [$groupName].";
+	throw "Directory query returned more than one Group with DisplayName eq [$name].";
 }
 
 # check if group not exist
@@ -61,11 +68,11 @@ if ($null -eq $group)
 
 	$param = @{
 		Description				= $manifest.Description
-		DisplayName				= $groupName
+		DisplayName				= $name
 		GroupTypes				= @()
 		IsAssignableToRole		= $false
 		MailEnabled				= $false
-		MailNickname			= $groupName
+		MailNickname			= $name
 		SecurityEnabled			= $true
 	}
 
@@ -88,7 +95,7 @@ else
 # get members from manifest
 $memberIdList = [List[String]] ($manifest.Members | ForEach-Object { [MicrosoftGraphDirectoryObject]::DeserializeFromDictionary($_) } | Select-Object -ExpandProperty Id);
 
-# add extra members specfied
+# add extra members specified
 $memberIdList.AddRange($extraMembers);
 
 # get existing members
