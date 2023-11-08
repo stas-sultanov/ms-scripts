@@ -159,5 +159,5 @@ foreach ($ownerId in $toRemoveOwnerIdList)
 <# return result #>
 
 return @{
-	Id = $group.Id
+	objectId = $group.Id
 };
