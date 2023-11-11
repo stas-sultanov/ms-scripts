@@ -40,6 +40,8 @@ param
 
 <# implementation #>
 
+Import-Module 
+
 # secure access token
 $accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
 
@@ -53,7 +55,7 @@ $manifest = Get-Content $manifestFileName | out-string | ConvertFrom-Json -AsHas
 <# get or create group #>
 
 # get all groups with DisplayName eq to specified
-$group = Get-MgGroup -Filter "DisplayName eq '$name'";
+$group = Get-MgBetaGroup -Filter "DisplayName eq '$name'";
 
 # check if there is more then one group
 if ($group -is [array])
@@ -76,7 +78,7 @@ if ($null -eq $group)
 		SecurityEnabled			= $true
 	}
 
-	$group = New-MgGroup -BodyParameter $param;
+	$group = New-MgBetaGroup -BodyParameter $param;
 }
 else
 {
@@ -86,7 +88,7 @@ else
 	{
 		Write-Host "Group Update Description";
 
-		$group = Update-MgGroup -GroupId $group.Id -Description $manifest.Description;
+		$group = Update-MgBetaGroup -GroupId $group.Id -Description $manifest.Description;
 	}
 }
 
@@ -109,7 +111,7 @@ foreach ($memberId in $toAddMemberIdList)
 	Write-Host "Group Add Member [$memberId]";
 
 	# add
-	New-MgGroupMember -GroupId $group.Id -DirectoryObjectId $memberId;
+	New-MgBetaGroupMember -GroupId $group.Id -DirectoryObjectId $memberId;
 }
 
 # get members to remove
@@ -120,7 +122,7 @@ foreach ($memberId in $toRemoveMemberIdList)
 	Write-Host "Group Remove Member [$memberId]";
 
 	# remove
-	Remove-MgGroupMemberByRef -GroupId $group.Id -DirectoryObjectId $memberId;
+	Remove-MgBetaGroupMemberByRef -GroupId $group.Id -DirectoryObjectId $memberId;
 }
 
 <# provision Owners #>
@@ -142,7 +144,7 @@ foreach ($ownerId in $toAddOwnerIdList)
 	Write-Host "Group Add Owner [$ownerId]";
 
 	# add owner
-	New-MgGroupOwner -GroupId $group.Id -DirectoryObjectId $ownerId;
+	New-MgBetaGroupOwner -GroupId $group.Id -DirectoryObjectId $ownerId;
 }
 
 # get owners to remove, excluding current identity
@@ -153,7 +155,7 @@ foreach ($ownerId in $toRemoveOwnerIdList)
 	Write-Host "Group Remove Owner [$ownerId]";
 
 	# remove owner
-	Remove-MgGroupOwnerByRef -GroupId $group.Id -DirectoryObjectId $ownerId;
+	Remove-MgBetaGroupOwnerByRef -GroupId $group.Id -DirectoryObjectId $ownerId;
 }
 
 <# return result #>
