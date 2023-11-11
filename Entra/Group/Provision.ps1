@@ -27,7 +27,7 @@
 #>
 
 using namespace System.Collections.Generic;
-using namespace Microsoft.Graph.PowerShell.Models;
+using namespace Microsoft.Graph.Beta.PowerShell.Models;
 
 param
 (
@@ -39,8 +39,6 @@ param
 )
 
 <# implementation #>
-
-Import-Module 
 
 # secure access token
 $accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
