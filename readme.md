@@ -33,7 +33,7 @@ Root
 │   │   └── Remove.ps1                          # Remove Application Registration within the Entra ID tenant.
 │   │
 │   ├── Group
-│   │   └── Provision.ps1                       # Provision Application Registration within the Entra ID tenant.
+│   │   └── Provision.ps1                       # Provision Group within the Entra ID tenant.
 │   │
 │   └── Identity
 │       └── AssignRole.ps1                      # Assign Identity to the specified Role within the Entra ID tenant.
