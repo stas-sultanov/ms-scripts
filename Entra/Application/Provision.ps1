@@ -220,8 +220,8 @@ Update-MgApplication -ApplicationId $app.Id -Web $web;
 <# return result #>
 
 return @{
-	ClientId = $app.AppId
-	IdentifierUris = $identifierUris
-	ObjectId = $app.Id
-	Secrets = $secrets
+	clientId = $app.AppId
+	identifierUris = $identifierUris
+	objectId = $app.Id
+	secrets = $secrets
 };
