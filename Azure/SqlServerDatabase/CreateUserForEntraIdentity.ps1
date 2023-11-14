@@ -7,28 +7,31 @@
 	Create SQL Server Database User for Identity within the Entra ID tenant.
 .NOTES
 	Copyright © 2023 Stas Sultanov.
-.PARAMETER serverFQDN
-	Fully Qualified Domain Name of the Azure Sql Server.
+.PARAMETER accessToken
+	Bearer token to access an Azure SQL Server.
 .PARAMETER databaseName
-	Name of the Database within the Azure Sql Server.
-.PARAMETER databaseUserName
-	Name of the User to create or update for the Identity.
+	Name of the Database within the Azure SQL Server.
 .PARAMETER databaseRoles
 	Collection of tha Database Roles to grant to the Identity.
+.PARAMETER databaseUserName
+	Name of the User to create or update for the Identity.
 .PARAMETER identityObjectId
 	ObjectId of the Identity within the Entra ID tenant.
+.PARAMETER serverFQDN
+	Fully Qualified Domain Name of the Azure SQL Server.
 #>
 
 param
 (
-	[Parameter(Mandatory = $true)] [System.String]   $serverFQDN,
-	[Parameter(Mandatory = $true)] [System.String]   $databaseName,
-	[Parameter(Mandatory = $true)] [System.String]   $databaseUserName,
-	[Parameter(Mandatory = $true)] [System.String[]] $databaseRoles,
-	[Parameter(Mandatory = $true)] [System.String]   $identityObjectId
+	[parameter(Mandatory = $true)]	[String]	$accessToken,
+	[Parameter(Mandatory = $true)]	[String]	$databaseName,
+	[Parameter(Mandatory = $true)]	[String[]]	$databaseRoles,
+	[Parameter(Mandatory = $true)]	[String]	$databaseUserName,
+	[Parameter(Mandatory = $true)]	[String]	$identityObjectId,
+	[Parameter(Mandatory = $true)]	[String]	$serverFQDN
 )
 
-# Compose command
+# compose command
 $command =
 @"
 	DROP USER IF EXISTS [$databaseUserName]
@@ -37,17 +40,14 @@ $command =
 
 "@
 
-# Add roles assignment to the command
+# add roles assignment to the command
 foreach ($databaseRole in $databaseRoles)
 {
 	$command += "ALTER ROLE $databaseRole ADD MEMBER [$databaseUserName]`n"
 }
 
-# Add go
+# add go
 $command += "GO"
 
-# Get server access token via Managed Identity of the caller
-$accessToken = (Get-AzAccessToken -ResourceUrl https://database.windows.net).Token
-
-# Now that we have the token, we use it to connect to the database and execute script
-Invoke-Sqlcmd -ServerInstance $serverFQDN -Database $databaseName -AccessToken $accessToken -query $command
+# connect to the database and execute script
+Invoke-Sqlcmd -AccessToken $accessToken -Database $databaseName -ServerInstance $serverFQDN -query $command

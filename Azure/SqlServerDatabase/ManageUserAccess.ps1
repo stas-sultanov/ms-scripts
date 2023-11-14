@@ -7,21 +7,24 @@
 	Set User access mode for the specified Sql Server Database.
 .NOTES
 	Copyright © 2023 Stas Sultanov.
-.PARAMETER serverFQDN
-	Fully Qualified Domain Name of the Sql Server.
-.PARAMETER databaseName
-	Azure Sql Database name within the Sql Server.
+.PARAMETER accessToken
+	Bearer token to access an Azure SQL Server.
 .PARAMETER action
 	An action to perform.
 	Restrict - the database can be access by the users with the one of the following role: db_owner, dbcreator.
 	Release - the database can be access by any valid user.
+.PARAMETER databaseName
+	Azure Sql Database name within the Sql Server.
+.PARAMETER serverFQDN
+	Fully Qualified Domain Name of the Sql Server.
 #>
 
 param
 (
-	[Parameter(Mandatory = $true)] [System.String] $serverFQDN,
-	[Parameter(Mandatory = $true)] [System.String] $databaseName,
-	[Parameter(Mandatory = $true)] [ValidateSet('Restrict', 'Release')] [System.String] $action
+	[parameter(Mandatory = $true)]	[String]	$accessToken,
+	[Parameter(Mandatory = $true)]	[ValidateSet('Restrict', 'Release')]	[String]	$action,
+	[Parameter(Mandatory = $true)]	[String]	$databaseName,
+	[Parameter(Mandatory = $true)]	[String]	$serverFQDN
 )
 
 # compose command
@@ -54,8 +57,5 @@ switch -Exact ($action)
 	}
 }
 
-# Get Sql Server Access Token via Identity of the caller
-$accessToken = (Get-AzAccessToken -ResourceUrl https://database.windows.net).Token
-
-# Execute command
-Invoke-Sqlcmd -ServerInstance $serverFQDN -Database $databaseName -AccessToken $accessToken -query $command
+# connect to the database and execute script
+Invoke-Sqlcmd -AccessToken $accessToken -Database $databaseName -ServerInstance $serverFQDN -query $command
