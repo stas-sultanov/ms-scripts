@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Create SQL Server Database User for Identity within the Entra ID tenant.
 .NOTES
-	Copyright © 2023 Stas Sultanov
+	Copyright © 2023 Stas Sultanov.
 .PARAMETER serverFQDN
 	Fully Qualified Domain Name of the Azure Sql Server.
 .PARAMETER databaseName

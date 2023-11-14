@@ -6,12 +6,14 @@
 .SYNOPSIS
 	Assign Identity to the specified Role within the Entra ID tenant.
 .DESCRIPTION
-	Connect-AzAccount must be called before executing this script.
 	Can be executed only by identity with one of the following roles:
 	- "Global Administrator"
 	- "Privileged Roles Administrator"
+	Uses Microsoft.Graph Powershell module.
 .NOTES
-	Copyright © 2023 Stas Sultanov
+	Copyright © 2023 Stas Sultanov.
+.PARAMETER accessToken
+	Bearer token to access MS Graph.
 .PARAMETER identityObjectId
 	ObjectId of the Identity within the Entra ID tenant.
 .PARAMETER roleName
@@ -20,15 +22,13 @@
 
 param
 (
-	[Parameter(Mandatory = $true)] [System.String] $identityObjectId,
-	[Parameter(Mandatory = $true)] [System.String] $roleName
+	[parameter(Mandatory = $true)]	[String]		$accessToken,
+	[Parameter(Mandatory = $true)]	[System.String]	$identityObjectId,
+	[Parameter(Mandatory = $true)]	[System.String]	$roleName
 )
 
-# get access token
-$accessToken = Get-AzAccessToken -ResourceTypeName MSGraph;
-
 # secure access token
-$accessTokenSecured = $accessToken.Token | ConvertTo-SecureString -AsPlainText -Force;
+$accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
 
 # connect to Graph
 Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
@@ -52,12 +52,12 @@ $assignments = Get-MgRoleManagementDirectoryRoleAssignment -All | Where-Object {
 
 if ($null -ne $assignments)
 {
-	Write-Host "Identity with ObjectId [$identityObjectId] is already member of Role [$roleName].";
+	Write-Host "Role [$roleName] already assigned to Object with Id [$identityObjectId].";
 }
 else
 {
 	# add identity to the role
 	New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$identityObjectId"
 
-	Write-Host "Identity with ObjectId [$identityObjectId] is assigned with Role [$roleName]."
+	Write-Host "Role [$roleName] assigned to Object with Id [$identityObjectId]."
 }

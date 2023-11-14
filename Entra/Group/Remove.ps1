@@ -4,7 +4,7 @@
 	gitHub:		https://github.com/stas-sultanov
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
-	Remove an Application Registration within the Entra ID tenant.
+	Remove a Group within the Entra ID tenant.
 .DESCRIPTION
 	Uses Microsoft.Graph Powershell module.
 .NOTES
@@ -30,16 +30,16 @@ $accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
 Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
 
 # check if object exists
-$object = Get-MgApplication -Filter "Id eq '$objectId'";
+$object = Get-MgGroup -Filter "Id eq '$objectId'";
 
 if ($null -eq $object)
 {
-	Write-Host "Application Registration does not exist";
+	Write-Host "Group does not exist";
 
 	return;
 }
 
-Write-Host "Application Registration Delete";
+Write-Host "Group Delete";
 
 # remove object
-Remove-MgApplication -ApplicationId $objectId;
+Remove-MgGroup -GroupId $objectId;

@@ -29,11 +29,12 @@ Root
 ├── Entra                                       # Scripts for Microsoft Entra services.
 │   │
 │   ├── Application
-│   │   ├── Provision.ps1                       # Provision Application Registration within the Entra ID tenant.
-│   │   └── Remove.ps1                          # Remove Application Registration within the Entra ID tenant.
+│   │   ├── Provision.ps1                       # Provision an Application Registration within the Entra ID tenant.
+│   │   └── Remove.ps1                          # Remove an Application Registration within the Entra ID tenant.
 │   │
 │   ├── Group
-│   │   └── Provision.ps1                       # Provision Group within the Entra ID tenant.
+│   │   └── Provision.ps1                       # Provision a Group within the Entra ID tenant.
+│   │   └── Remove.ps1                          # Remove a Group within the Entra ID tenant.
 │   │
 │   └── Identity
 │       └── AssignRole.ps1                      # Assign Identity to the specified Role within the Entra ID tenant.

@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Load file in JSON format as Azure DevOps Pipeline variables.
 .NOTES
-	Copyright © 2023 Stas Sultanov
+	Copyright © 2023 Stas Sultanov.
 .PARAMETER fileName
 	Name of the file to load.
 .PARAMETER delimiter

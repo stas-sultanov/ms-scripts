@@ -9,7 +9,7 @@
 	Script assumes that names of groups are unique within the Entra ID tenant.
 	Uses Microsoft.Graph.Beta Powershell module.
 .NOTES
-	Copyright © 2023 Stas Sultanov
+	Copyright © 2023 Stas Sultanov.
 .PARAMETER accessToken
 	Bearer token to access MS Graph.
 .PARAMETER extraMembers
