@@ -48,16 +48,41 @@ if ($null -eq $role)
 	Write-Host "Role [$roleName] created from the template.";
 }
 
-$assignments = Get-MgRoleManagementDirectoryRoleAssignment -All | Where-Object {($_.PrincipalId -eq $identityObjectId) -and ($_.RoleDefinitionId -eq $roleTemplate.Id)}
+# get assignments
+$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$($roleTemplate.Id)')"
 
 if ($null -ne $assignments)
 {
 	Write-Host "Role [$roleName] already assigned to Object with Id [$identityObjectId].";
-}
-else
-{
-	# add identity to the role
-	New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$identityObjectId"
 
-	Write-Host "Role [$roleName] assigned to Object with Id [$identityObjectId]."
+	return;
 }
+
+# add identity to the role
+New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$identityObjectId"
+
+# changes are not propagated to all instances of Entra immediately
+# this is why we need to read several times to ensure that changes are propagated 
+$retryCount = 3;
+
+$retryDelayInSeconds = 5;
+
+$retryDelayIncrementInSeconds = 10;
+
+for ($index = 0; $index -lt $retryCount; $index++)
+{
+	$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$($roleTemplate.Id)')";
+
+	if ($null -ne $assignments)
+	{
+		return;
+	}
+
+	Write-Warning "Role [$roleName] assignment to Object with Id [$identityObjectId] is not yet propagated to all Entra instances.";
+
+	Start-Sleep -Seconds $retryDelayInSeconds;
+
+	$retryDelayInSeconds += $retryDelayIncrementInSeconds;
+}
+
+Write-Host "Role [$roleName] assigned to Object with Id [$identityObjectId]."
