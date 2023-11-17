@@ -22,16 +22,13 @@
 
 param
 (
-	[parameter(Mandatory = $true)]	[String]		$accessToken,
-	[Parameter(Mandatory = $true)]	[System.String]	$identityObjectId,
-	[Parameter(Mandatory = $true)]	[System.String]	$roleName
+	[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
+	[Parameter(Mandatory = $true)]	[String]		$identityObjectId,
+	[Parameter(Mandatory = $true)]	[String]		$roleName
 )
 
-# secure access token
-$accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
-
 # connect to Graph
-Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
+Connect-MgGraph -AccessToken $accessToken -NoWelcome;
 
 # get role template id by name
 $roleTemplate = Get-MgDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq $roleName }
