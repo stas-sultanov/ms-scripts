@@ -65,12 +65,16 @@ New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "https://graph
 # this is why we need to read several times to ensure that changes are propagated 
 $retryCount = 3;
 
-$retryDelayInSeconds = 5;
+$retryDelayInSeconds = 15;
 
-$retryDelayIncrementInSeconds = 10;
+$retryDelayIncrementInSeconds = 15;
 
 for ($index = 0; $index -lt $retryCount; $index++)
 {
+	# wait
+	Start-Sleep -Seconds $retryDelayInSeconds;
+
+	# check
 	$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$($roleTemplate.Id)')";
 
 	if ($null -ne $assignments)
@@ -79,8 +83,6 @@ for ($index = 0; $index -lt $retryCount; $index++)
 	}
 
 	Write-Warning "Role [$roleName] assignment to Object with Id [$identityObjectId] is not yet propagated to all Entra instances.";
-
-	Start-Sleep -Seconds $retryDelayInSeconds;
 
 	$retryDelayInSeconds += $retryDelayIncrementInSeconds;
 }
