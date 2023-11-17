@@ -33,20 +33,17 @@ using namespace Microsoft.Graph.PowerShell.Models;
 
 param
 (
-	[parameter(Mandatory = $true)]	[String]	$accessToken,
-	[parameter(Mandatory = $true)]	[String]	$identityObjectId,
-	[parameter(Mandatory = $true)]	[String]	$logoFileName,
-	[parameter(Mandatory = $true)]	[String]	$manifestFileName,
-	[parameter(Mandatory = $true)]	[String]	$name
+	[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
+	[parameter(Mandatory = $true)]	[String]		$identityObjectId,
+	[parameter(Mandatory = $true)]	[String]		$logoFileName,
+	[parameter(Mandatory = $true)]	[String]		$manifestFileName,
+	[parameter(Mandatory = $true)]	[String]		$name
 )
 
 <# implementation #>
 
-# secure access token
-$accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
-
 # connect to Graph
-Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
+Connect-MgGraph -AccessToken $accessToken -NoWelcome;
 
 <# read manifest file #>
 

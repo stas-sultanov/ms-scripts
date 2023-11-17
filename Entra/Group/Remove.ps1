@@ -17,17 +17,14 @@
 
 param
 (
-	[parameter(Mandatory = $true)]	[String]	$accessToken,
-	[parameter(Mandatory = $true)]	[String]	$objectId
+	[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
+	[parameter(Mandatory = $true)]	[String]		$objectId
 )
 
 <# implementation #>
 
-# secure access token
-$accessTokenSecured = $accessToken | ConvertTo-SecureString -AsPlainText -Force;
-
 # connect to Graph
-Connect-MgGraph -AccessToken $accessTokenSecured -NoWelcome;
+Connect-MgGraph -AccessToken $accessToken -NoWelcome;
 
 # check if object exists
 $object = Get-MgGroup -Filter "Id eq '$objectId'";
