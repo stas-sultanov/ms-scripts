@@ -31,22 +31,24 @@ param
 Connect-MgGraph -AccessToken $accessToken -NoWelcome;
 
 # get role template id by name
-$roleTemplate = Get-MgDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq $roleName }
+$roleTemplate = Get-MgDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq $roleName };
+
+$roleTemplateId = $roleTemplate.Id;
 
 # try get role Id by name
-$role = Get-MgDirectoryRole -Filter "RoleTemplateId eq '$($roleTemplate.Id)'"
+$role = Get-MgDirectoryRole -Filter "RoleTemplateId eq '$roleTemplateId'"
 
 # role does not exist
 if ($null -eq $role)
 {
 	# create role from the template
-	$role = New-MgDirectoryRole -RoleTemplateId $roleTemplate.Id
+	$role = New-MgDirectoryRole -RoleTemplateId $roleTemplateId
 
 	Write-Host "Role [$roleName] created from the template.";
 }
 
 # get assignments
-$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$($roleTemplate.Id)')"
+$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')"
 
 if ($null -ne $assignments)
 {
@@ -72,7 +74,7 @@ for ($index = 0; $index -lt $retryCount; $index++)
 	Start-Sleep -Seconds $retryDelayInSeconds;
 
 	# check
-	$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$($roleTemplate.Id)')";
+	$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')";
 
 	if ($null -ne $assignments)
 	{
