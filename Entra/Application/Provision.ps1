@@ -91,6 +91,9 @@ function UpdateApplication {
 # connect to Graph
 Connect-MgGraph -AccessToken $accessToken -NoWelcome;
 
+# get Graph Endpoint
+$graphEndpoint = ( Get-MgEnvironment -Name ( Get-MgContext ).Environment ).GraphEndpoint;
+
 <# get or create application #>
 
 # get all Applications Registrations with DisplayName eq specified
@@ -141,7 +144,7 @@ if (![string]::IsNullOrEmpty($logoFileName)) {
 	Write-Host "App Registration Update Logo";
 
 	# there is a bug in Set-MgApplicationLogo, this is why we call raw api
-	Invoke-GraphRequest -Method PUT -Uri "https://graph.microsoft.com/v1.0/applications/$($currentState.Id)/logo" -InputFilePath $logoFileName -ContentType 'image/*';
+	Invoke-GraphRequest -Method PUT -Uri "$graphEndpoint/v1.0/applications/$($currentState.Id)/logo" -InputFilePath $logoFileName -ContentType 'image/*';
 }
 
 <# provision Owners #>
@@ -163,7 +166,7 @@ foreach ($ownerId in $toAddOwnerIdList) {
 	Write-Host "App Registration Add Owner [$ownerId]";
 
 	# add owner
-	New-MgApplicationOwnerByRef -ApplicationId $currentState.Id -OdataId "https://graph.microsoft.com/v1.0/directoryObjects/$ownerId"
+	New-MgApplicationOwnerByRef -ApplicationId $currentState.Id -OdataId "$graphEndpoint/v1.0/directoryObjects/$ownerId"
 }
 
 # get owners to remove, excluding current identity
