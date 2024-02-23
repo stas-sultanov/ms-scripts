@@ -52,6 +52,8 @@ if ($null -ne $assignments)
 {
 	Write-Host "Role [$roleName] is already assigned to the Object with Id [$identityObjectId].";
 
+	Write-Host "Current assignments are: [$($assignments | ConvertTo-Json)].";
+
 	return;
 }
 
