@@ -46,9 +46,9 @@ if ($null -eq $role)
 }
 
 # get assignments
-$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')";
+$assignments = [Array] (Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')");
 
-if ($null -ne $assignments)
+if ($assignments.Count -ge 0)
 {
 	Write-Host "Role [$roleName] is already assigned to the Object with Id [$identityObjectId].";
 
@@ -76,9 +76,9 @@ for ($index = 0; $index -lt $retryCount; $index++)
 	Start-Sleep -Seconds $retryDelayInSeconds;
 
 	# check
-	$assignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')";
+	$assignments = [Array] (Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')");
 
-	if ($null -ne $assignments)
+	if ($assignments.Count -ge 0)
 	{
 		return;
 	}
