@@ -29,26 +29,26 @@ param
 Connect-MgGraph -AccessToken $accessToken -NoWelcome;
 
 # get role template id by name
-$roleTemplate = Get-MgDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq $roleName };
+$roleTemplate = Get-MgBetaDirectoryRoleTemplate | Where-Object { $_.DisplayName -eq $roleName };
 
 $roleTemplateId = $roleTemplate.Id;
 
 # try get role Id by name
-$role = Get-MgDirectoryRole -Filter "RoleTemplateId eq '$roleTemplateId'";
+$role = Get-MgBetaDirectoryRole -Filter "RoleTemplateId eq '$roleTemplateId'";
 
 # check if role exists
 if ($null -eq $role)
 {
 	# create role from the template
-	$role = New-MgDirectoryRole -RoleTemplateId $roleTemplateId;
+	$role = New-MgBetaDirectoryRole -RoleTemplateId $roleTemplateId;
 
 	Write-Host "Role [$roleName] created from the template [$roleTemplateId].";
 }
 
 # get assignments
-$assignments = [Array] (Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')");
+$assignments = [Array] (Get-MgBetaRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')");
 
-if ($assignments.Count -ge 0)
+if (($null -ne $assignments) -and ($assignments.Count -ge 0))
 {
 	Write-Host "Role [$roleName] is already assigned to the Object with Id [$identityObjectId].";
 
@@ -60,7 +60,7 @@ if ($assignments.Count -ge 0)
 # add identity to the role
 $graphEndpoint = ( Get-MgEnvironment -Name ( Get-MgContext ).Environment ).GraphEndpoint;
 
-New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "$graphEndpoint/v1.0/directoryObjects/$identityObjectId";
+New-MgBetaDirectoryRoleMemberByRef -DirectoryRoleId $role.Id -OdataId "$graphEndpoint/v1.0/directoryObjects/$identityObjectId";
 
 # changes are not propagated to all instances of Entra immediately
 # this is why we need to read several times to ensure that changes are propagated
@@ -76,9 +76,9 @@ for ($index = 0; $index -lt $retryCount; $index++)
 	Start-Sleep -Seconds $retryDelayInSeconds;
 
 	# check
-	$assignments = [Array] (Get-MgRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')");
+	$assignments = [Array] (Get-MgBetaRoleManagementDirectoryRoleAssignment -Filter "(PrincipalId eq '$identityObjectId') and (RoleDefinitionId eq '$roleTemplateId')");
 
-	if ($assignments.Count -ge 0)
+	if (($null -ne $assignments) -and ($assignments.Count -ge 0))
 	{
 		return;
 	}
