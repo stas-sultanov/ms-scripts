@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Set User access mode for the specified Sql Server Database.
 .NOTES
-	Copyright © 2023 Stas Sultanov.
+	Copyright © 2024 Stas Sultanov.
 .PARAMETER accessToken
 	Bearer token to access an Azure SQL Server.
 .PARAMETER action

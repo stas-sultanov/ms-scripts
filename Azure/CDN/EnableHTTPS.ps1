@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Enable HTTPS for all CDN profiles.
 .NOTES
-	Copyright © 2023 Stas Sultanov.
+	Copyright © 2024 Stas Sultanov.
 .PARAMETER resourceGroupName
 	Name of the resource group.
 #>

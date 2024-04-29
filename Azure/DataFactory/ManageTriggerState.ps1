@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Stop all triggers in specified Azure DataFactory instance.
 .NOTES
-	Copyright © 2023 Stas Sultanov.
+	Copyright © 2024 Stas Sultanov.
 .PARAMETER dataFactoryResourceId
 	Id of the DataFactory Resource.
 .PARAMETER action

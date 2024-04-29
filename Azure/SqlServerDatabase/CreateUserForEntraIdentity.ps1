@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Create SQL Server Database User for Identity within the Entra ID tenant.
 .NOTES
-	Copyright © 2023 Stas Sultanov.
+	Copyright © 2024 Stas Sultanov.
 .PARAMETER accessToken
 	Bearer token to access an Azure SQL Server.
 .PARAMETER databaseName

@@ -6,7 +6,7 @@
 .SYNOPSIS
 	Create or Reset ApiKey with name specified.
 .NOTES
-	Copyright © 2023 Stas Sultanov.
+	Copyright © 2024 Stas Sultanov.
 .PARAMETER resourceId
 	Id of the Application Insights Resource.
 .PARAMETER keyName

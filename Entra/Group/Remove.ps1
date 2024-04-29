@@ -8,7 +8,7 @@
 .DESCRIPTION
 	Uses Microsoft.Graph Powershell module.
 .NOTES
-	Copyright © 2023 Stas Sultanov.
+	Copyright © 2024 Stas Sultanov.
 .PARAMETER accessToken
 	Bearer token to access MS Graph.
 .PARAMETER objectId
