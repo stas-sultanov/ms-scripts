@@ -148,9 +148,6 @@ if (![string]::IsNullOrEmpty($logoFileName)) {
 	Write-Host "App Registration Update Logo";
 
 	Set-MgBetaApplicationLogo -ApplicationId $application.Id -InFile $logoFileName -ContentType 'image/*';
-
-	# there is a bug in Set-MgApplicationLogo, this is why we call raw api
-#	Invoke-GraphRequest -Method PUT -Uri "$graphEndpoint/v1.0/applications/$($application.Id)/logo" -InputFilePath $logoFileName -ContentType 'image/*';
 }
 
 <# provision Owners #>
@@ -221,8 +218,8 @@ if (($null -ne $desiredState.VerifiedPublisher) -and ![string]::IsNullOrEmpty($d
 <# return result #>
 
 return @{
-	ClientId                   = $application.AppId
-	IdentifierUris             = $identifierUris
-	ObjectId                   = $application.Id
-	PasswordCredentials        = $passwordCredentials
+	ClientId            = $application.AppId
+	IdentifierUris      = $identifierUris
+	ObjectId            = $application.Id
+	PasswordCredentials = $passwordCredentials
 };
