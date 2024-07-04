@@ -50,7 +50,6 @@ function CreateApplication {
 
 	# create construction object
 	$body = [IMicrosoftGraphApplication] @{
-		AccessTokenAcceptedVersion = $desiredState.AccessTokenAcceptedVersion
 		Api                        = $desiredState.Api
 		AppRoles                   = $desiredState.AppRoles
 		AuthenticationBehaviors    = $desiredState.AuthenticationBehaviors
@@ -61,7 +60,7 @@ function CreateApplication {
 		RequiredResourceAccess     = $desiredState.RequiredResourceAccess
 		SignInAudience             = $desiredState.SignInAudience
 		Web                        = $desiredState.Web
-	}
+	};
 
 	# create new app registration
 	$result = New-MgBetaApplication -BodyParameter $body;
@@ -77,7 +76,6 @@ function UpdateApplication {
 	)
 
 	$body = [IMicrosoftGraphApplication] @{
-		AccessTokenAcceptedVersion = $desiredState.AccessTokenAcceptedVersion
 		Api                        = $desiredState.Api
 		AppRoles                   = $desiredState.AppRoles
 		AuthenticationBehaviors    = $desiredState.AuthenticationBehaviors
@@ -87,9 +85,9 @@ function UpdateApplication {
 		RequiredResourceAccess     = $desiredState.RequiredResourceAccess
 		SignInAudience             = $desiredState.SignInAudience
 		Web                        = $desiredState.Web
-	}
+	};
 
-	Update-MgBetaApplication -ApplicationId $application.Id -BodyParameter $body
+	Update-MgBetaApplication -ApplicationId $application.Id -BodyParameter $body;
 }
 
 # connect to Graph
@@ -195,7 +193,7 @@ if ($updatePasswordCredentials -eq $true) {
 		Write-Host "App Registration Remove Password [$($passwordCredential.DisplayName)]";
 
 		Remove-MgBetaApplicationPassword -ApplicationId $application.Id -KeyId $passwordCredential.KeyId;
-	}
+	};
 
 	foreach ($passwordCredential in $desiredState.PasswordCredentials) {
 		Write-Host "App Registration Add Password [$($passwordCredential.DisplayName)]";
