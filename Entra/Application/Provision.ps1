@@ -216,8 +216,8 @@ if (($null -ne $desiredState.VerifiedPublisher) -and ![string]::IsNullOrEmpty($d
 <# return result #>
 
 return @{
-	ClientId            = $application.AppId
-	IdentifierUris      = $identifierUris
-	ObjectId            = $application.Id
-	PasswordCredentials = $passwordCredentials
+	clientId            = $application.AppId
+	identifierUris      = $identifierUris
+	objectId            = $application.Id
+	passwordCredentials = $passwordCredentials
 };
