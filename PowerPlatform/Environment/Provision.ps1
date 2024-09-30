@@ -59,11 +59,11 @@ process {
 
 		# make request
 		$response = Invoke-WebRequest `
-		-Authentication Bearer `
-		-Method Get `
-		-Token $accessToken `
-		-Uri $statusUri `
-		-Verbose:($isVerbose);
+			-Authentication Bearer `
+			-Method Get `
+			-Token $accessToken `
+			-Uri $statusUri `
+			-Verbose:($isVerbose);
 	} while ($response.StatusCode -ne 200);
 
 	# get environment name
@@ -86,9 +86,9 @@ process {
 
 	# create projection and return as result
 	return @{
-		azureRegion         = $responseContent.properties.azureRegion
-		domainName          = $responseContent.properties.linkedEnvironmentMetadata.domainName
-		instanceUrl         = $responseContent.properties.linkedEnvironmentMetadata.instanceUrl
-		name                = $responseContent.name
-};
+		azureRegion = $responseContent.properties.azureRegion
+		domainName  = $responseContent.properties.linkedEnvironmentMetadata.domainName
+		instanceUrl = $responseContent.properties.linkedEnvironmentMetadata.instanceUrl
+		name        = $responseContent.name
+	};
 }

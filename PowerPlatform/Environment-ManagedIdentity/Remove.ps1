@@ -3,7 +3,7 @@
 	gitHub:		https://github.com/stas-sultanov
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
-	Remove Managed Identity from the Power Platform environment.
+	Remove a Managed Identity from the Power Platform environment.
 .DESCRIPTION
 	Can be executed by Identity which has Power Platform Administrator role within Entra.
 	Use this api: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/managedidentity

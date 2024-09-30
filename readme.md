@@ -41,9 +41,13 @@ Root
 │
 ├── PowerPlatform                               # Scripts for Microsoft Power Platform services.
 │   │
-│   └── Environment
-│       ├── Provision.ps1                       # Provision an environment within the Power Platform tenant.
-│       └── Remove.ps1                          # Remove an environment within the Entra ID tenant.
+│   ├── Environment
+│   │   ├── Provision.ps1                       # Provision an environment within the Power Platform tenant.
+│   │   └── Remove.ps1                          # Remove an environment from the Power Platform tenant.
+│   │
+│   └── Environment-ManagedIdentity
+│       ├── Provision.ps1                       # Provision a Managed Identity within the Power Platform environment.
+│       └── Remove.ps1                          # Remove a Managed Identity from the Power Platform environment.
 │
 ├── license                                     # License file.
 └── readme.md                                   # This file.
