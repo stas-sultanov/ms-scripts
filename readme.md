@@ -39,6 +39,12 @@ Root
 │   └── Identity
 │       └── AssignRole.ps1                      # Assign Identity to the specified Role within the Entra ID tenant.
 │
+├── PowerPlatform                               # Scripts for Microsoft Power Platform services.
+│   │
+│   └── Environment
+│       ├── Provision.ps1                       # Provision an environment within the Power Platform tenant.
+│       └── Remove.ps1                          # Remove an environment within the Entra ID tenant.
+│
 ├── license                                     # License file.
 └── readme.md                                   # This file.
 ```

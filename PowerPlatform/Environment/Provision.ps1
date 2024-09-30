@@ -3,7 +3,7 @@
 	gitHub:		https://github.com/stas-sultanov
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
-	Creates an environment within the Power Platform tenant.
+	Provision an environment within the Power Platform tenant.
 .DESCRIPTION
 	Can be executed by Identity which has Power Platform Administrator role within Entra.
 .NOTES
