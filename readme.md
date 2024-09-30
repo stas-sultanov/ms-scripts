@@ -1,4 +1,4 @@
-Authored by Stas Sultanov [ [linkedIn](https://www.linkedin.com/in/stas-sultanov) | [gitHub](https://github.com/stas-sultanov) | [mail](mailto:stas.sultanov@outlook.com) ]
+Authored by Stas Sultanov [ [linkedIn](https://www.linkedin.com/in/stas-sultanov) | [gitHub](https://github.com/stas-sultanov) ]
 
 # About
 Collection of Powershell scripts for Microsoft products and services.

@@ -1,6 +1,5 @@
 <#
 	author:		Stas Sultanov
-	contact:	stas.sultanov@outlook.com
 	gitHub:		https://github.com/stas-sultanov
 	profile:	https://www.linkedin.com/in/stas-sultanov
 .SYNOPSIS
