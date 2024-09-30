@@ -13,8 +13,12 @@
 .PARAMETER settings
 	Object that contains all settings required to create an environment.
 .OUTPUTS
-	System.String
-	Environment Id.
+	System.Object
+	On object with following fields:
+		- azureRegion		[System.String]
+		- domainName		[System.String]
+		- instanceUrl		[System.String]
+		- name				[System.String]
 #>
 
 [CmdletBinding(DefaultParameterSetName = "User")]
@@ -62,8 +66,29 @@ process {
 		-Verbose:($isVerbose);
 	} while ($response.StatusCode -ne 200);
 
-	# get environment id
-	$result = ($response.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
+	# get environment name
+	$environmentName = ($response.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
 
-	return $result;
+	# create request uri
+	$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments/$($environmentName)?api-version=2021-04-01&`$select=name,properties.azureRegion,properties.linkedEnvironmentMetadata.domainName,properties.linkedEnvironmentMetadata.instanceUrl";
+
+	# execute request
+	$response = Invoke-WebRequest `
+		-Authentication Bearer `
+		-ContentType "application/json" `
+		-Method Get `
+		-Token $accessToken `
+		-Uri $requestUri `
+		-Verbose:($isVerbose);
+
+	# convert response content
+	$responseContent = $response.Content | ConvertFrom-Json;
+
+	# create projection and return as result
+	return @{
+		azureRegion         = $responseContent.properties.azureRegion
+		domainName          = $responseContent.properties.linkedEnvironmentMetadata.domainName
+		instanceUrl         = $responseContent.properties.linkedEnvironmentMetadata.instanceUrl
+		name                = $responseContent.name
+};
 }
