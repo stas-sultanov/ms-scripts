@@ -50,7 +50,7 @@ process {
 	$statusUri = $response.Headers['Location'][0];
 
 	#Wait until the environment has been created or the service timeout
-	do {
+	while (($response.StatusCode -ne 200) -and $response.Headers.ContainsKey('Retry-After')) {
 		# get amount of seconds to sleep
 		$retryAfter = [Int32] $response.Headers['Retry-After'][0];
 
@@ -64,7 +64,7 @@ process {
 			-Token $accessToken `
 			-Uri $statusUri `
 			-Verbose:($isVerbose);
-	} while ($response.StatusCode -ne 200);
+	} 
 
 	# get environment name
 	$environmentName = ($response.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
