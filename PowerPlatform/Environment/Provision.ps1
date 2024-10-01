@@ -50,7 +50,7 @@ process {
 	$statusUri = $response.Headers['Location'][0];
 
 	#Wait until the environment has been created or the service timeout
-	while (($response.StatusCode -ne 200) -and $response.Headers.ContainsKey('Retry-After')) {
+	while ($response.Headers.ContainsKey('Retry-After')) {
 		# get amount of seconds to sleep
 		$retryAfter = [Int32] $response.Headers['Retry-After'][0];
 
@@ -70,7 +70,7 @@ process {
 	$environmentName = ($response.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
 
 	# create request uri
-	$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments/$($environmentName)?api-version=2021-04-01&`$select=name,properties.azureRegion,properties.linkedEnvironmentMetadata.domainName,properties.linkedEnvironmentMetadata.instanceUrl";
+	$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments/$($environmentName)?api-version=2021-04-01";
 
 	# execute request
 	$response = Invoke-WebRequest `
