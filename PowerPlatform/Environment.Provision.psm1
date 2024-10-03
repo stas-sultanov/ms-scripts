@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 function PowerPlatform.Environment.Provision
+=======
+function PowerPlatform.Environment.Provsion
+>>>>>>> 857178606eef4bd733eb052235ba02054589f848
 {
 	<#
 	.SYNOPSIS
@@ -95,4 +99,8 @@ function PowerPlatform.Environment.Provision
 	}
 }
 
+<<<<<<< HEAD
 Export-ModuleMember -Function PowerPlatform.Environment.Provision;
+=======
+Export-ModuleMember -Function PowerPlatform.Environment.Provsion;
+>>>>>>> 857178606eef4bd733eb052235ba02054589f848
