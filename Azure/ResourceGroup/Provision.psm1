@@ -1,15 +1,10 @@
 function Azure.ResourceGroup.Provision
 {
 	<#
-		author:		Stas Sultanov
-		gitHub:		https://github.com/stas-sultanov
-		profile:	https://www.linkedin.com/in/stas-sultanov
 	.SYNOPSIS
 		Provision resources within the Resource Group.
 	.DESCRIPTION
 		Can be executed by Identity which has Power Platform Administrator role within Entra.
-	.NOTES
-		Copyright © 2024 Stas Sultanov.
 	.PARAMETER deploymentModeComplete
 		True if performe Complete deployment, otherwise Incremental.
 	.PARAMETER deploymentName
@@ -28,7 +23,8 @@ function Azure.ResourceGroup.Provision
 		A hash table of template parameter names and values.
 	.PARAMETER tenant
 		The domain name or id of Entra tenant.
-
+	.NOTES
+		Copyright © 2024 Stas Sultanov.
 	.OUTPUTS
 		System.Dictionary
 	#>

@@ -41,7 +41,8 @@ param
 
 <# implementation #>
 
-function CreateApplication {
+function CreateApplication
+{
 	param
 	(
 		[parameter(Mandatory = $true)] [IMicrosoftGraphApplication] $desiredState
@@ -49,16 +50,16 @@ function CreateApplication {
 
 	# create construction object
 	$body = [IMicrosoftGraphApplication] @{
-		Api                        = $desiredState.Api
-		AppRoles                   = $desiredState.AppRoles
-		AuthenticationBehaviors    = $desiredState.AuthenticationBehaviors
-		DisplayName                = $desiredState.DisplayName
-		Info                       = $desiredState.Info
-		Notes                      = $desiredState.Notes
-		OptionalClaims             = $desiredState.OptionalClaims
-		RequiredResourceAccess     = $desiredState.RequiredResourceAccess
-		SignInAudience             = $desiredState.SignInAudience
-		Web                        = $desiredState.Web
+		Api                     = $desiredState.Api
+		AppRoles                = $desiredState.AppRoles
+		AuthenticationBehaviors = $desiredState.AuthenticationBehaviors
+		DisplayName             = $desiredState.DisplayName
+		Info                    = $desiredState.Info
+		Notes                   = $desiredState.Notes
+		OptionalClaims          = $desiredState.OptionalClaims
+		RequiredResourceAccess  = $desiredState.RequiredResourceAccess
+		SignInAudience          = $desiredState.SignInAudience
+		Web                     = $desiredState.Web
 	};
 
 	# create new app registration
@@ -67,7 +68,8 @@ function CreateApplication {
 	return $result;
 }
 
-function UpdateApplication {
+function UpdateApplication
+{
 	param
 	(
 		[parameter(Mandatory = $true)] [IMicrosoftGraphApplication] $application,
@@ -75,15 +77,15 @@ function UpdateApplication {
 	)
 
 	$body = [IMicrosoftGraphApplication] @{
-		Api                        = $desiredState.Api
-		AppRoles                   = $desiredState.AppRoles
-		AuthenticationBehaviors    = $desiredState.AuthenticationBehaviors
-		Info                       = $desiredState.Info
-		Notes                      = $desiredState.Notes
-		OptionalClaims             = $desiredState.OptionalClaims
-		RequiredResourceAccess     = $desiredState.RequiredResourceAccess
-		SignInAudience             = $desiredState.SignInAudience
-		Web                        = $desiredState.Web
+		Api                     = $desiredState.Api
+		AppRoles                = $desiredState.AppRoles
+		AuthenticationBehaviors = $desiredState.AuthenticationBehaviors
+		Info                    = $desiredState.Info
+		Notes                   = $desiredState.Notes
+		OptionalClaims          = $desiredState.OptionalClaims
+		RequiredResourceAccess  = $desiredState.RequiredResourceAccess
+		SignInAudience          = $desiredState.SignInAudience
+		Web                     = $desiredState.Web
 	};
 
 	Update-MgBetaApplication -ApplicationId $application.Id -BodyParameter $body;
@@ -109,18 +111,21 @@ $desiredState = [MicrosoftGraphApplication]::DeserializeFromDictionary( $manifes
 $application = Get-MgBetaApplication -Filter "DisplayName eq '$($desiredState.DisplayName)'";
 
 # check if there is more then one app registration
-if ($application -is [array]) {
+if ($application -is [array])
+{
 	throw "Directory query returned more than one App Registration with DisplayName eq [$($desiredState.DisplayName)].";
 }
 
 # check if app not exist
-if ($null -eq $application) {
-	Write-Host "App Registration Create";
+if ($null -eq $application)
+{
+	Write-Host 'App Registration Create';
 
 	$application = CreateApplication $desiredState;
 }
-else {
-	Write-Host "App Registration Update";
+else
+{
+	Write-Host 'App Registration Update';
 
 	UpdateApplication $application $desiredState;
 }
@@ -132,8 +137,9 @@ Update-MgBetaApplication -ApplicationId $application.Id -IdentifierUris $identif
 
 <# provision PublisherDomain #>
 
-if (![string]::IsNullOrEmpty($desiredState.PublisherDomain)) {
-	Write-Host "App Registration Update PublisherDomain";
+if (![string]::IsNullOrEmpty($desiredState.PublisherDomain))
+{
+	Write-Host 'App Registration Update PublisherDomain';
 
 	Update-MgBetaApplication -ApplicationId $application.Id -PublisherDomain $desiredState.PublisherDomain;
 }
@@ -141,8 +147,9 @@ if (![string]::IsNullOrEmpty($desiredState.PublisherDomain)) {
 <# provision Logo #>
 
 # check if logo file name was specified
-if (![string]::IsNullOrEmpty($logoFileName)) {
-	Write-Host "App Registration Update Logo";
+if (![string]::IsNullOrEmpty($logoFileName))
+{
+	Write-Host 'App Registration Update Logo';
 
 	Set-MgBetaApplicationLogo -ApplicationId $application.Id -InFile $logoFileName -ContentType 'image/*';
 }
@@ -152,7 +159,8 @@ if (![string]::IsNullOrEmpty($logoFileName)) {
 # get owners from manifest
 $ownerIdList = @();
 
-if ($null -ne $desiredState.Owners) {
+if ($null -ne $desiredState.Owners)
+{
 	$ownerIdList = $desiredState.Owners | Select-Object -ExpandProperty Id;
 }
 
@@ -162,7 +170,8 @@ $existingOwnerIdList = Get-MgBetaApplicationOwner -ApplicationId $application.Id
 # get owners to add, by excluding existing owners from specified in manifest
 $toAddOwnerIdList = $ownerIdList | Where-Object { $_ -notin $existingOwnerIdList };
 
-foreach ($ownerId in $toAddOwnerIdList) {
+foreach ($ownerId in $toAddOwnerIdList)
+{
 	Write-Host "App Registration Add Owner [$ownerId]";
 
 	# add owner
@@ -172,7 +181,8 @@ foreach ($ownerId in $toAddOwnerIdList) {
 # get owners to remove, excluding current identity
 $toRemoveOwnerIdList = $existingOwnerIdList | Where-Object { ($_ -ne $callerIdentityObjectId) -and ($_ -notin $ownerIdList) };
 
-foreach ($ownerId in $toRemoveOwnerIdList) {
+foreach ($ownerId in $toRemoveOwnerIdList)
+{
 	Write-Host "App Registration Remove Owner [$ownerId]";
 
 	# remove owner
@@ -182,19 +192,22 @@ foreach ($ownerId in $toRemoveOwnerIdList) {
 <# provision PasswordCredentials #>
 $passwordCredentials = @{};
 
-if ($updatePasswordCredentials -eq $true) {
+if ($updatePasswordCredentials -eq $true)
+{
 
 	# there is a no Get-MgApplicationPasswordCredentials, this is why we call raw api
 	$existingPasswordCredentialList = [IMicrosoftGraphPasswordCredential[]](Invoke-GraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/applications/$($application.Id)/passwordCredentials").Value;
 
 	# remove all existing passwords
-	foreach ($passwordCredential in $existingPasswordCredentialList) {
+	foreach ($passwordCredential in $existingPasswordCredentialList)
+	{
 		Write-Host "App Registration Remove Password [$($passwordCredential.DisplayName)]";
 
 		Remove-MgBetaApplicationPassword -ApplicationId $application.Id -KeyId $passwordCredential.KeyId;
 	};
 
-	foreach ($passwordCredential in $desiredState.PasswordCredentials) {
+	foreach ($passwordCredential in $desiredState.PasswordCredentials)
+	{
 		Write-Host "App Registration Add Password [$($passwordCredential.DisplayName)]";
 
 		#add password
@@ -206,8 +219,9 @@ if ($updatePasswordCredentials -eq $true) {
 
 <# provision VerifiedPublisher #>
 
-if (($null -ne $desiredState.VerifiedPublisher) -and ![string]::IsNullOrEmpty($desiredState.VerifiedPublisher.VerifiedPublisherId)) {
-	Write-Host "App Registration Update VerifiedPublisher";
+if (($null -ne $desiredState.VerifiedPublisher) -and ![string]::IsNullOrEmpty($desiredState.VerifiedPublisher.VerifiedPublisherId))
+{
+	Write-Host 'App Registration Update VerifiedPublisher';
 
 	Update-MgBetaApplication -ApplicationId $application.Id -VerifiedPublisher $desiredState.VerifiedPublisher;
 }
