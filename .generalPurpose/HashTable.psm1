@@ -1,43 +1,63 @@
 function Merge-HashTable
 {
+	<#
+	.SYNOPSIS
+		Merge Hashtables.
+	.PARAMETER layer0
+		Basic layer.
+	.PARAMETER layer1
+		Next layer
+	.OUTPUTS
+		hashtable
+	.NOTES
+		Copyright © 2024 Stas Sultanov.
+	#>
+
 	param
 	(
-		[hashtable] $first,
-		[hashtable] $second
+		[hashtable] $layer0,
+		[hashtable] $layer1
 	)
 	process
 	{
 		# clone for idempotence
-		$result = $first.Clone();
+		$result = $layer0.Clone();
 
-		foreach ($key in $second.Keys)
+		foreach ($key in $layer1.Keys)
 		{
 			# check if first contains the key
-			if (!$first.ContainsKey($key))
+			if (!$layer0.ContainsKey($key))
 			{
 				# add key-value from second to first
-				$result[$key] = $second[$key];
+				$result[$key] = $layer1[$key];
 
 				continue;
 			}
 
-			$firstValue = $first[$key];
-			$secondValue = $second[$key];
+			$layer0Value = $layer0[$key];
+			$layer1Value = $layer1[$key];
 
-			if ($firstValue.GetType() -ne $second[$key].GetType())
+			if ($layer0Value.GetType() -ne $layer1Value.GetType())
 			{
 				throw "Different types for key = $key";
 			}
 
-			if ($firstValue -is [hashtable])
+			if ($layer0Value -is [hashtable])
 			{
-				$result[$key] = Merge-HashTable -first $firstValue -second $secondValue;
+				$result[$key] = Merge-HashTable -first $layer0Value -second $layer1Value;
+
+				continue;
+			}
+
+			if ($layer0Value -is [array])
+			{
+				$result[$key] = [array] $layer0Value  + [array] $layer1Value;
 
 				continue;
 			}
 
 			# just override the value
-			$result[$key] = $secondValue;
+			$result[$key] = $layer1Value;
 		}
 
 		# Union both sets
