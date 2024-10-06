@@ -9,7 +9,7 @@ function PowerPlatform.Environment.ManagedIdentity.Remove
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://[DomainName].[DomainSuffix].dynamics.com'.
 	.PARAMETER id
-		Id of the Managed Identity within the Power Platform enviornment.
+		Id of the Managed Identity within the Power Platform Enviornment.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>

@@ -23,8 +23,10 @@ function PowerPlatform.Environment.Remove
 	{
 		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
 
+		$environmentsRequestUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments';
+
 		# create request uri to validate delete
-		$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments/$($environmentName)/validateDelete?api-version=2021-04-01";
+		$requestUri = "$environmentsRequestUri/$environmentName/validateDelete?api-version=2021-04-01";
 
 		# execute request
 		$response = Invoke-WebRequest `
@@ -43,7 +45,7 @@ function PowerPlatform.Environment.Remove
 		}
 
 		# create request uri to delete
-		$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments/$($environmentName)?api-version=2021-04-01";
+		$requestUri = "$environmentsRequestUri/$environmentName?api-version=2021-04-01";
 
 		# execute request
 		$response = Invoke-WebRequest `

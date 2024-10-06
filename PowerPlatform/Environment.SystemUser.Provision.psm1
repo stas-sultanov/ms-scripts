@@ -58,27 +58,26 @@ function PowerPlatform.Helpers.RequestCreateAndWait
 	}
 }
 
-function PowerPlatform.Environment.ManagedIdentity.Provision
+function PowerPlatform.Environment.SystemUser.Provision
 {
 	<#
 	.SYNOPSIS
-		Provision a Managed Identity within the Power Platform Environment.
+		Provision a System User within the Power Platform Environment.
 	.DESCRIPTION
-		Can be executed by Identity which has Power Platform Administrator Role within Entra.
-		More information here: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/managedidentity
+		Can be executed by Identity which has Power Platform Administrator role within Entra.
+		More information here: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/systemuser
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://[DomainName].[DomainSuffix].dynamics.com'.
 	.PARAMETER applicationId
 		Application (Client) Id of the Service Principal within the Entra tenant.
-	.PARAMETER id
-		Id of the Managed Identity within Power Platform Environment.
+	.PARAMETER businessUnitId
+		Unique identifier of the Business Unit with which the User is associated.
 	.PARAMETER instanceUrl
-		Url of the Power Platform environment.
-	.PARAMETER tenantId
-		Id of the Entra tenant.
+		Url of the Power Platform Environment.
 	.OUTPUTS
 		System.Object
-			id : Environment Id
+			id : System User Id
+			roleIds : collection of Ids of assigned Roles
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -88,40 +87,63 @@ function PowerPlatform.Environment.ManagedIdentity.Provision
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
 		[Parameter(Mandatory = $true)]	[String]		$applicationId,
-		[Parameter(Mandatory = $false)]	[String]		$id = (New-Guid).Guid,
+		[Parameter(Mandatory = $true)]	[String]		$businessUnitId,
 		[Parameter(Mandatory = $true)]	[String]		$instanceUrl,
-		[Parameter(Mandatory = $true)]	[String]		$tenantId
+		[Parameter(Mandatory = $true)]	[String[]]		$roleIds
 	)
 	process
 	{
 		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
 
 		# create request uri
-		$requestUri = "$($instanceUrl)api/data/v9.2/managedidentities";
+		$requestUri = "$($instanceUrl)api/data/v9.2/systemusers";
 
 		# create request body
 		$requestBody = [PSCustomObject]@{
-			applicationid     = $applicationId
-			credentialsource  = 2
-			managedidentityid = $id
-			subjectscope      = 1
-			tenantid          = $tenantId
-		} | ConvertTo-Json -Compress;
+			accessmode					= 4
+			'businessunitid@odata.bind'	= "/businessunits($businessUnitId)"
+			applicationid				= $applicationId
+			isdisabled					= $false
+		};
 
 		# make request
 		$response = PowerPlatform.Helpers.RequestCreateAndWait -accessToken $accessToken -body $requestBody -uri $requestUri -Verbose:($isVerbose);
 
 		# convert response content
 		$responseContent = $response.Content | ConvertFrom-Json;
-
+		
 		# create result from response
 		$result = @{
-			id = $responseContent.managedidentityid
+			id = $responseContent.systemuserid
+			roleIds = [System.Collections.Generic.List[String]]::new()
 		};
+
+		foreach ($roleId in $roleIds)
+		{
+			# create request uri
+			$requestUri = "$($instanceUrl)api/data/v9.2/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
+
+			# create request body
+			$requestBody = [PSCustomObject]@{
+				'@odata.id' = "$($instanceUrl)api/data/v9.2/roles($roleId)"
+			} | ConvertTo-Json -Compress;
+
+			# execute request
+			$null = Invoke-WebRequest `
+				-Authentication Bearer `
+				-Body $requestBody `
+				-ContentType 'application/json' `
+				-Method Post `
+				-Token $accessToken `
+				-Uri $requestUri `
+				-Verbose:($isVerbose);
+
+			$result.roleIds.Add($roleId);
+		}
 
 		# return result
 		return $result;
 	}
 }
 
-Export-ModuleMember -Function PowerPlatform.Environment.ManagedIdentity.Provision;
+Export-ModuleMember -Function PowerPlatform.Environment.SystemUser.Provision;

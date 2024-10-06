@@ -65,7 +65,7 @@ function PowerPlatform.Environment.Provision
 				-Token $accessToken `
 				-Uri $statusUri `
 				-Verbose:($isVerbose);
-		} 
+		}
 
 		# get environment name
 		$environmentName = ($response.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
