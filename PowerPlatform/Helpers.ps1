@@ -1,15 +1,16 @@
-function PowerPlatform.Helpers.RequestCreateAndWait
+function PowerPlatform.Helpers.InvokeCreate
 {
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]		$accessToken,
-		[Parameter(Mandatory = $true)]	[String]			$uri,
-		[Parameter(Mandatory = $true)]	[PSCustomObject]	$body
+		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
+		[Parameter(Mandatory = $true)]	[Object]		$body,
+		[Parameter(Mandatory = $true)]	[String]		$uri,
+		[Parameter(Mandatory = $true)]	[Int32]			$waitStatusCode
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
+		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
 
 		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
 
@@ -21,9 +22,9 @@ function PowerPlatform.Helpers.RequestCreateAndWait
 			-Method Post `
 			-Token $accessToken `
 			-Uri $uri `
-			-Verbose:($isVerbose);
+			-Verbose:$isVerbose;
 
-		if ($response.StatusCode -eq 204)
+		if ($response.StatusCode -eq $waitStatusCode)
 		{
 			# get status uri
 			$statusUri = $response.Headers['Location'][0];
@@ -36,7 +37,7 @@ function PowerPlatform.Helpers.RequestCreateAndWait
 					-Method Get `
 					-Token $accessToken `
 					-Uri $statusUri `
-					-Verbose:($isVerbose);
+					-Verbose:$isVerbose;
 
 				if ($response.Headers.ContainsKey('Retry-After'))
 				{

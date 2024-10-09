@@ -1,63 +1,3 @@
-function PowerPlatform.Helpers.RequestCreateAndWait
-{
-	[CmdletBinding(DefaultParameterSetName = 'User')]
-	param
-	(
-		[parameter(Mandatory = $true)]	[SecureString]		$accessToken,
-		[Parameter(Mandatory = $true)]	[String]			$uri,
-		[Parameter(Mandatory = $true)]	[PSCustomObject]	$body
-	)
-	process
-	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
-
-		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
-
-		# execute request
-		$response = Invoke-WebRequest `
-			-Authentication Bearer `
-			-Body $requestBody `
-			-ContentType 'application/json' `
-			-Method Post `
-			-Token $accessToken `
-			-Uri $uri `
-			-Verbose:($isVerbose);
-
-		if ($response.StatusCode -eq 204)
-		{
-			# get status uri
-			$statusUri = $response.Headers['Location'][0];
-
-			while ($true)
-			{
-				# make status request
-				$response = Invoke-WebRequest `
-					-Authentication Bearer `
-					-Method Get `
-					-Token $accessToken `
-					-Uri $statusUri `
-					-Verbose:($isVerbose);
-
-				if ($response.Headers.ContainsKey('Retry-After'))
-				{
-					# get amount of seconds to sleep
-					$retryAfter = [Int32] $response.Headers['Retry-After'][0];
-
-					# fall sleep
-					Start-Sleep -s $retryAfter;
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-
-		# return response
-		return $response;
-	}
-}
-
 function PowerPlatform.Environment.SystemUser.Provision
 {
 	<#
@@ -93,7 +33,7 @@ function PowerPlatform.Environment.SystemUser.Provision
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
+		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
 
 		# create request uri
 		$requestUri = "$($instanceUrl)api/data/v9.2/systemusers";
@@ -107,7 +47,7 @@ function PowerPlatform.Environment.SystemUser.Provision
 		};
 
 		# make request
-		$response = PowerPlatform.Helpers.RequestCreateAndWait -accessToken $accessToken -body $requestBody -uri $requestUri -Verbose:($isVerbose);
+		$response = PowerPlatform.Helpers.InvokeCreate -accessToken $accessToken -body $requestBody -uri $requestUri -waitStatusCode 204 -Verbose:$isVerbose;
 
 		# convert response content
 		$responseContent = $response.Content | ConvertFrom-Json;
@@ -136,7 +76,7 @@ function PowerPlatform.Environment.SystemUser.Provision
 				-Method Post `
 				-Token $accessToken `
 				-Uri $requestUri `
-				-Verbose:($isVerbose);
+				-Verbose:$isVerbose;
 
 			$result.roleIds.Add($roleId);
 		}
@@ -147,3 +87,64 @@ function PowerPlatform.Environment.SystemUser.Provision
 }
 
 Export-ModuleMember -Function PowerPlatform.Environment.SystemUser.Provision;
+
+function PowerPlatform.Helpers.InvokeCreate
+{
+	[CmdletBinding(DefaultParameterSetName = 'User')]
+	param
+	(
+		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
+		[Parameter(Mandatory = $true)]	[Object]		$body,
+		[Parameter(Mandatory = $true)]	[String]		$uri,
+		[Parameter(Mandatory = $true)]	[Int32]			$waitStatusCode
+	)
+	process
+	{
+		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+
+		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
+
+		# execute request
+		$response = Invoke-WebRequest `
+			-Authentication Bearer `
+			-Body $requestBody `
+			-ContentType 'application/json' `
+			-Method Post `
+			-Token $accessToken `
+			-Uri $uri `
+			-Verbose:$isVerbose;
+
+		if ($response.StatusCode -eq $waitStatusCode)
+		{
+			# get status uri
+			$statusUri = $response.Headers['Location'][0];
+
+			while ($true)
+			{
+				# make status request
+				$response = Invoke-WebRequest `
+					-Authentication Bearer `
+					-Method Get `
+					-Token $accessToken `
+					-Uri $statusUri `
+					-Verbose:$isVerbose;
+
+				if ($response.Headers.ContainsKey('Retry-After'))
+				{
+					# get amount of seconds to sleep
+					$retryAfter = [Int32] $response.Headers['Retry-After'][0];
+
+					# fall sleep
+					Start-Sleep -s $retryAfter;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		# return response
+		return $response;
+	}
+}

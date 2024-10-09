@@ -24,54 +24,25 @@ function PowerPlatform.Environment.Provision
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
+		[parameter(Mandatory = $false)]	[string]		$apiVersion = '2024-05-01',
 		[Parameter(Mandatory = $true)]	[Object]		$settings
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
+		# get verbose parameter value
+		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
 
-		# create request url
-		$requestUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments?api-version=2021-04-01&retainOnProvisionFailure=false';
+		# create request uri
+		$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false";
 
-		Write-Verbose $requestUri;
-
-		$requestBody = $settings | ConvertTo-Json -Compress -Depth 100;
-
-		# execute request
-		$response = Invoke-WebRequest `
-			-Authentication Bearer `
-			-Body $requestBody `
-			-ContentType 'application/json' `
-			-Method Post `
-			-Token $accessToken `
-			-Uri $requestUri `
-			-Verbose:($isVerbose);
-
-		$statusUri = $response.Headers['Location'][0];
-
-		#Wait until the environment has been created or the service timeout
-		while ($response.Headers.ContainsKey('Retry-After'))
-		{
-			# get amount of seconds to sleep
-			$retryAfter = [Int32] $response.Headers['Retry-After'][0];
-
-			# fall sleep
-			Start-Sleep -s $retryAfter;
-
-			# make request
-			$response = Invoke-WebRequest `
-				-Authentication Bearer `
-				-Method Get `
-				-Token $accessToken `
-				-Uri $statusUri `
-				-Verbose:($isVerbose);
-		}
+		# make request and wait till complete
+		$response = PowerPlatform.Helpers.InvokeCreate -accessToken $accessToken -body $settings -uri $requestUri -waitStatusCode 202 -Verbose:$isVerbose;
 
 		# get environment name
 		$environmentName = ($response.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
 
 		# create request uri
-		$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments/$($environmentName)?api-version=2021-04-01";
+		$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments/$($environmentName)?api-version=$($apiVersion)";
 
 		# execute request
 		$response = Invoke-WebRequest `
@@ -96,3 +67,64 @@ function PowerPlatform.Environment.Provision
 }
 
 Export-ModuleMember -Function PowerPlatform.Environment.Provision;
+
+function PowerPlatform.Helpers.InvokeCreate
+{
+	[CmdletBinding(DefaultParameterSetName = 'User')]
+	param
+	(
+		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
+		[Parameter(Mandatory = $true)]	[Object]		$body,
+		[Parameter(Mandatory = $true)]	[String]		$uri,
+		[Parameter(Mandatory = $true)]	[Int32]			$waitStatusCode
+	)
+	process
+	{
+		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+
+		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
+
+		# execute request
+		$response = Invoke-WebRequest `
+			-Authentication Bearer `
+			-Body $requestBody `
+			-ContentType 'application/json' `
+			-Method Post `
+			-Token $accessToken `
+			-Uri $uri `
+			-Verbose:$isVerbose;
+
+		if ($response.StatusCode -eq $waitStatusCode)
+		{
+			# get status uri
+			$statusUri = $response.Headers['Location'][0];
+
+			while ($true)
+			{
+				# make status request
+				$response = Invoke-WebRequest `
+					-Authentication Bearer `
+					-Method Get `
+					-Token $accessToken `
+					-Uri $statusUri `
+					-Verbose:$isVerbose;
+
+				if ($response.Headers.ContainsKey('Retry-After'))
+				{
+					# get amount of seconds to sleep
+					$retryAfter = [Int32] $response.Headers['Retry-After'][0];
+
+					# fall sleep
+					Start-Sleep -s $retryAfter;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		# return response
+		return $response;
+	}
+}
