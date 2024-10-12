@@ -15,8 +15,6 @@ function Azure.ResourceGroup.Provision
 		A name for the resource group
 	.PARAMETER subscription
 		The name or id of the Azure subscription.
-	.PARAMETER tags
-		The tags to put on the deployment.
 	.PARAMETER templateFile
 		The full path of a custom template file
 	.PARAMETER templateParameters
@@ -64,7 +62,6 @@ function Azure.ResourceGroup.Provision
 			-Mode ($deploymentModeComplete ? 1 : 0) `
 			-Name $deploymentName `
 			-ResourceGroupName $resourceGroupName `
-			-Tag $tags `
 			-TemplateFile $templateFile `
 			-TemplateParameterObject $templateParameters `
 			-Verbose:($isVerbose);
