@@ -37,14 +37,14 @@ function Azure.ResourceGroup.Provision
 		[Parameter(Mandatory = $true)]	[String]	$location,
 		[Parameter(Mandatory = $true)]	[String]	$resourceGroupName,
 		[Parameter(Mandatory = $true)]	[String]	$subscription,
-		[Parameter(Mandatory = $true)]	[Object]	$tags,
+		[Parameter(Mandatory = $false)]	[Hashtable]	$tags = @{},
 		[Parameter(Mandatory = $true)]	[String]	$templateFile,
 		[Parameter(Mandatory = $false)]	[Object]	$templateParameters = @{},
 		[Parameter(Mandatory = $true)]	[String]	$tenant
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
+		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
 
 		# set context
 		$null = Set-AzContext -Subscription $subscription -Tenant $tenant -Verbose:($isVerbose);
