@@ -41,4 +41,4 @@ function Azure.ResourceGroup.Remove
 	}
 }
 
-Export-ModuleMember -Function Remove-AzureResourceGroup;
+Export-ModuleMember -Function Azure.ResourceGroup.Remove;
