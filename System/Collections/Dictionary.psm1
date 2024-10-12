@@ -1,7 +1,8 @@
 using namespace System;
 using namespace System.Collections;
+using namespace System.Collections.Specialized;
 
-function Merge-Hashtable
+function Dictionary.Merge
 {
 	<#
 	.SYNOPSIS
@@ -11,7 +12,7 @@ function Merge-Hashtable
 	.PARAMETER second
 		Next layer
 	.OUTPUTS
-		[Hashtable] that contains values from first and second
+		[OrderedDictionary] that contains values from first and second
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -34,14 +35,19 @@ function Merge-Hashtable
 		}
 
 		# clone for idempotence
-		$result = [Hashtable]::new($first);
+		$result = [OrderedDictionary]::new();
+
+		foreach ($key in $first.Keys)
+		{
+			$result[$key] = $first[$key];
+		}
 
 		foreach ($key in $second.Keys)
 		{
 			$secondValue = $second[$key];
 
 			# check if first does not contain the key or key has null value
-			if (!$first.ContainsKey($key) -or ($null -eq $result[$key]))
+			if (!$first.Contains($key) -or ($null -eq $result[$key]))
 			{
 				# add key-value from second to first
 				$result[$key] = $secondValue;
@@ -54,7 +60,7 @@ function Merge-Hashtable
 			# check if both values are IDictionary
 			if (($firstValue -is [IDictionary]) -and ($secondValue -is [IDictionary]))
 			{
-				$result[$key] = Merge-HashTable -first $firstValue -second $secondValue;
+				$result[$key] = Dictionary.Merge -first $firstValue -second $secondValue;
 
 				continue;
 			}
@@ -83,4 +89,4 @@ function Merge-Hashtable
 	}
 }
 
-Export-ModuleMember -Function Merge-Hashtable;
+Export-ModuleMember -Function Dictionary.Merge;
