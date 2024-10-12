@@ -34,7 +34,8 @@ function PowerPlatform.Environment.ManagedIdentity.Provision
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create request uri
 		$requestUri = "$($instanceUrl)api/data/v9.2/managedidentities";
@@ -78,7 +79,7 @@ function PowerPlatform.Helpers.InvokeCreate
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
 

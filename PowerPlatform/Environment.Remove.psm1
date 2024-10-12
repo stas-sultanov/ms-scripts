@@ -78,7 +78,7 @@ function PowerPlatform.Environment.Remove
 	process
 	{
 		# get verbose parameter value
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		$baseUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments';
 

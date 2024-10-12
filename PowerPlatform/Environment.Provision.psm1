@@ -30,7 +30,7 @@ function PowerPlatform.Environment.Provision
 	process
 	{
 		# get verbose parameter value
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create request uri
 		$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false";
@@ -80,7 +80,8 @@ function PowerPlatform.Helpers.InvokeCreate
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
 

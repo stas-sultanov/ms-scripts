@@ -23,7 +23,8 @@ function PowerPlatform.Environment.ManagedIdentity.Remove
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $true;
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create request uri
 		$requestUri = "$($instanceUrl)api/data/v9.2/managedidentities($($id))";
@@ -34,7 +35,7 @@ function PowerPlatform.Environment.ManagedIdentity.Remove
 			-Method Delete `
 			-Token $accessToken `
 			-Uri $requestUri `
-			-Verbose:($isVerbose);
+			-Verbose:$isVerbose;
 	}
 }
 

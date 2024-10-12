@@ -10,7 +10,8 @@ function PowerPlatform.Helpers.InvokeCreate
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
 

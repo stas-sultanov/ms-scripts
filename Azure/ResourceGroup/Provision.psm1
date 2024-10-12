@@ -12,7 +12,7 @@ function Azure.ResourceGroup.Provision
 	.PARAMETER location
 		The location of the resource group.
 	.PARAMETER resourceGroupName
-		A name for the resource group
+		A name for the resource group.
 	.PARAMETER subscription
 		The name or id of the Azure subscription.
 	.PARAMETER templateFile
@@ -21,10 +21,10 @@ function Azure.ResourceGroup.Provision
 		A hash table of template parameter names and values.
 	.PARAMETER tenant
 		The domain name or id of Entra tenant.
+	.OUTPUTS
+		System.IDictionary
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
-	.OUTPUTS
-		System.Dictionary
 	#>
 
 	[CmdletBinding(DefaultParameterSetName = 'User')]
@@ -35,14 +35,14 @@ function Azure.ResourceGroup.Provision
 		[Parameter(Mandatory = $true)]	[String]	$location,
 		[Parameter(Mandatory = $true)]	[String]	$resourceGroupName,
 		[Parameter(Mandatory = $true)]	[String]	$subscription,
-		[Parameter(Mandatory = $false)]	[Hashtable]	$tags = @{},
 		[Parameter(Mandatory = $true)]	[String]	$templateFile,
 		[Parameter(Mandatory = $false)]	[Object]	$templateParameters = @{},
 		[Parameter(Mandatory = $true)]	[String]	$tenant
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# set context
 		$null = Set-AzContext -Subscription $subscription -Tenant $tenant -Verbose:($isVerbose);
