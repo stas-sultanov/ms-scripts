@@ -37,9 +37,12 @@ function Merge-HashTable
 			$layer0Value = $layer0[$key];
 			$layer1Value = $layer1[$key];
 
-			if ($layer0Value.GetType() -ne $layer1Value.GetType())
+			$layer0ValueType = $layer0Value.GetType();
+			$layer1ValueType = $layer1Value.GetType();
+
+			if ($layer0ValueType -ne $layer1ValueType )
 			{
-				throw "Different types for key = $key";
+				throw "Different value types for key = $key : $layer0ValueType vs $layer1ValueType.";
 			}
 
 			if ($layer0Value -is [hashtable])
