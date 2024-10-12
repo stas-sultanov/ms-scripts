@@ -18,8 +18,8 @@ function Merge-Hashtable
 
 	param
 	(
-		[Hashtable] $first,
-		[Hashtable] $second
+		[IDictionary] $first,
+		[IDictionary] $second
 	)
 	process
 	{
@@ -34,7 +34,7 @@ function Merge-Hashtable
 		}
 
 		# clone for idempotence
-		$result = $first.Clone();
+		$result = [Hashtable]::new($first);
 
 		foreach ($key in $second.Keys)
 		{
@@ -51,26 +51,27 @@ function Merge-Hashtable
 
 			$firstValue = $first[$key];
 
-			$firstValueType = $firstValue.GetType();
-			$secondValueType = $secondValue.GetType();
-
-			if ($firstValueType -ne $secondValueType )
-			{
-				throw "Different value types for key = $key : $firstValueType vs $secondValueType.";
-			}
-
-			if ($firstValue -is [Hashtable])
+			# check if both values are IDictionary
+			if (($firstValue -is [IDictionary]) -and ($secondValue -is [IDictionary]))
 			{
 				$result[$key] = Merge-HashTable -first $firstValue -second $secondValue;
 
 				continue;
 			}
 
-			if ($firstValue -is [Array])
+			if (($firstValue -is [Array]) -and ($secondValue -is [Array]))
 			{
 				$result[$key] = [Array] $firstValue + [Array] $secondValue;
 
 				continue;
+			}
+
+			$firstValueType = $firstValue.GetType();
+			$secondValueType = $secondValue.GetType();
+
+			if ($firstValueType -ne $secondValueType)
+			{
+				throw "Different value types for key = $key : $firstValueType vs $secondValueType.";
 			}
 
 			# just override the value
