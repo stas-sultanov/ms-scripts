@@ -19,10 +19,18 @@ function Azure.SqlServer.Database.ManageUserAccess
 
 	param
 	(
-		[parameter(Mandatory = $true)]	[String]	$accessToken,
-		[Parameter(Mandatory = $true)]	[ValidateSet('Restrict', 'Release')]	[String]	$action,
-		[Parameter(Mandatory = $true)]	[String]	$databaseName,
-		[Parameter(Mandatory = $true)]	[String]	$serverFQDN
+		[parameter(Mandatory = $true)]
+		[String] $accessToken,
+
+		[Parameter(Mandatory = $true)]
+		[ValidateSet('Restrict', 'Release')]
+		[String] $action,
+
+		[Parameter(Mandatory = $true)]
+		[String] $databaseName,
+
+		[Parameter(Mandatory = $true)]
+		[String] $serverFQDN
 	)
 	process
 	{

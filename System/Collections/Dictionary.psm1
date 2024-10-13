@@ -6,7 +6,9 @@ function Dictionary.Merge
 {
 	<#
 	.SYNOPSIS
-		Merge Hashtables.
+		Merge two objects which implements [IDictionary].
+	.DESCRIPTION
+		Second has priority and overrides values in first.
 	.PARAMETER first
 		Basic layer.
 	.PARAMETER second

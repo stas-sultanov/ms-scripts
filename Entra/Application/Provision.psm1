@@ -75,10 +75,10 @@ function Entra.Application.Provision
 	.OUTPUTS
 		System.Object
 		On object with following fields:
-			- ClientId				[System.Guid]
-			- IdentifierUris		[System.String[]]
-			- ObjectId				[System.Guid]
-			- PasswordCredentials	[System.Object[]]
+			[System.Guid]		clientId
+			[System.String[]]	identifierUris
+			[System.Guid]		objectId
+			[System.Object[]]	passwordCredentials
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -86,10 +86,10 @@ function Entra.Application.Provision
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $true)]	[String]		$callerIdentityObjectId,
-		[parameter(Mandatory = $true)]	[String]		$logoFileName,
-		[parameter(Mandatory = $true)]	[String]		$manifestAsJson,
-		[parameter(Mandatory = $false)]	[Boolean]		$updatePasswordCredentials = $true
+		[parameter(Mandatory = $true)]	[String]	$callerIdentityObjectId,
+		[parameter(Mandatory = $true)]	[String]	$logoFileName,
+		[parameter(Mandatory = $true)]	[String]	$manifestAsJson,
+		[parameter(Mandatory = $false)]	[Boolean]	$updatePasswordCredentials = $true
 	)
 	process
 	{

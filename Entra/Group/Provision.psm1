@@ -22,7 +22,7 @@ function Entra.Group.Provision
 	.OUTPUTS
 		System.Object
 		On object with following fields:
-			Id:System.Guid
+			[System.Guid]	id
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -30,10 +30,10 @@ function Entra.Group.Provision
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $false)]	[String[]]		$extraMembers = @(),
-		[parameter(Mandatory = $false)]	[String[]]		$extraOwners = @(),
-		[parameter(Mandatory = $true)]	[String]		$manifestFileName,
-		[parameter(Mandatory = $true)]	[String]		$name
+		[parameter(Mandatory = $false)]	[String[]]	$extraMembers = @(),
+		[parameter(Mandatory = $false)]	[String[]]	$extraOwners = @(),
+		[parameter(Mandatory = $true)]	[String]	$manifestFileName,
+		[parameter(Mandatory = $true)]	[String]	$name
 	)
 	process
 	{

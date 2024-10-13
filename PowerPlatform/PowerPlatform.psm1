@@ -18,10 +18,10 @@ function PowerPlatform.Environment.Provision
 	.OUTPUTS
 		[OrderedDictionary]
 		On object with following fields:
-			- azureRegion		[System.String]
-			- domainName		[System.String]
-			- instanceUrl		[System.String]
-			- name				[System.String]
+			- azureRegion	[System.String]
+			- domainName	[System.String]
+			- instanceUrl	[System.String]
+			- name		[System.String]
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -30,8 +30,8 @@ function PowerPlatform.Environment.Provision
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $false)]	[string]		$apiVersion = '2024-05-01',
-		[Parameter(Mandatory = $true)]	[Object]		$settings
+		[parameter(Mandatory = $false)]	[string]	$apiVersion = '2024-05-01',
+		[Parameter(Mandatory = $true)]	[Object]	$settings
 	)
 	process
 	{
@@ -123,8 +123,8 @@ function PowerPlatform.Environment.Remove
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $false)]	[string]		$apiVersion = '2021-04-01',
-		[Parameter(Mandatory = $true)]	[String]		$environmentName
+		[parameter(Mandatory = $false)]	[string]	$apiVersion = '2021-04-01',
+		[Parameter(Mandatory = $true)]	[String]	$environmentName
 	)
 	process
 	{
@@ -196,11 +196,11 @@ function PowerPlatform.ManagedIdentity.Provision
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $false)]	[String]		$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]	[String]		$applicationId,
-		[Parameter(Mandatory = $false)]	[String]		$id = (New-Guid).Guid,
-		[Parameter(Mandatory = $true)]	[String]		$instanceUrl,
-		[Parameter(Mandatory = $true)]	[String]		$tenantId
+		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]	[String]	$applicationId,
+		[Parameter(Mandatory = $false)]	[String]	$id = (New-Guid).Guid,
+		[Parameter(Mandatory = $true)]	[String]	$instanceUrl,
+		[Parameter(Mandatory = $true)]	[String]	$tenantId
 	)
 	process
 	{
@@ -264,9 +264,9 @@ function PowerPlatform.ManagedIdentity.Remove
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $false)]	[String]		$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]	[String]		$id,
-		[Parameter(Mandatory = $true)]	[String]		$instanceUrl
+		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]	[String]	$id,
+		[Parameter(Mandatory = $true)]	[String]	$instanceUrl
 	)
 	process
 	{
@@ -317,11 +317,11 @@ function PowerPlatform.SystemUser.Provision
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $true)]	[String]		$applicationId,
-		[Parameter(Mandatory = $false)]	[String]		$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $false)]	[String]		$businessUnitId = $null,
-		[Parameter(Mandatory = $true)]	[String]		$instanceUrl,
-		[Parameter(Mandatory = $true)]	[String[]]		$roleIds
+		[Parameter(Mandatory = $true)]	[String]	$applicationId,
+		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
+		[Parameter(Mandatory = $false)]	[String]	$businessUnitId = $null,
+		[Parameter(Mandatory = $true)]	[String]	$instanceUrl,
+		[Parameter(Mandatory = $true)]	[String[]]	$roleIds
 	)
 	process
 	{
@@ -355,7 +355,7 @@ function PowerPlatform.SystemUser.Provision
 		# create request body
 		$requestBody = [PSCustomObject]@{
 			accessmode                  = 4
-			'businessunitid@odata.bind'	= "/businessunits($businessUnitId)"
+			'businessunitid@odata.bind' = "/businessunits($businessUnitId)"
 			applicationid               = $applicationId
 			isdisabled                  = $false
 		};
@@ -427,9 +427,9 @@ function PowerPlatform.SystemUser.Remove
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $false)]	[String]		$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]	[String]		$id,
-		[Parameter(Mandatory = $true)]	[String]		$instanceUrl
+		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]	[String]	$id,
+		[Parameter(Mandatory = $true)]	[String]	$instanceUrl
 	)
 	process
 	{
@@ -474,9 +474,9 @@ function InvokeRequestAndWaitResult
 	param
 	(
 		[parameter(Mandatory = $true)]	[SecureString]		$accessToken,
-		[Parameter(Mandatory = $false)]	[Object]			$body = $null,
+		[Parameter(Mandatory = $false)]	[Object]		$body = $null,
 		[Parameter(Mandatory = $true)]	[WebRequestMethod]	$method,
-		[Parameter(Mandatory = $true)]	[String]			$uri
+		[Parameter(Mandatory = $true)]	[String]		$uri
 	)
 	process
 	{
