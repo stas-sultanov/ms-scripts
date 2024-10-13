@@ -36,7 +36,12 @@ function PowerPlatform.Environment.Provision
 		$requestUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false";
 
 		# make request and wait till complete
-		$response = PowerPlatform.Helpers.InvokeCreate -accessToken $accessToken -body $settings -uri $requestUri -waitStatusCode 202 -Verbose:$isVerbose;
+		$response = PowerPlatform.Helpers.InvokeCreate `
+			-accessToken $accessToken `
+			-body $settings `
+			-uri $requestUri `
+			-waitStatusCode 202 `
+			-Verbose:$isVerbose;
 
 		# get environment name
 		$environmentName = ($response.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
@@ -51,7 +56,7 @@ function PowerPlatform.Environment.Provision
 			-Method Get `
 			-Token $accessToken `
 			-Uri $requestUri `
-			-Verbose:($isVerbose);
+			-Verbose:$isVerbose;
 
 		# convert response content
 		$responseContent = $response.Content | ConvertFrom-Json;

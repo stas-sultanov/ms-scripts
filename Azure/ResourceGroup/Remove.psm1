@@ -26,10 +26,10 @@ function Azure.ResourceGroup.Remove
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# set context
-		$null = Set-AzContext -Subscription $subscription -Tenant $tenant -Verbose:($isVerbose);
+		$null = Set-AzContext -Subscription $subscription -Tenant $tenant -Verbose:$isVerbose;
 
 		# check if resource group exist
-		$null = Get-AzResourceGroup -ErrorAction SilentlyContinue -ErrorVariable notExist -Name $resourceGroupName -Verbose:($isVerbose);
+		$null = Get-AzResourceGroup -ErrorAction SilentlyContinue -ErrorVariable notExist -Name $resourceGroupName -Verbose:$isVerbose;
 
 		if ($notExist)
 		{

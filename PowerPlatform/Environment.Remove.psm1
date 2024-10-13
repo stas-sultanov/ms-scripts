@@ -16,7 +16,7 @@ function PowerPlatform.Helpers.InvokeDeleteAndWait
 			-Method Delete `
 			-Token $accessToken `
 			-Uri $requestUri `
-			-Verbose:($isVerbose);
+			-Verbose:$isVerbose;
 
 		if ($response.StatusCode -eq 202)
 		{
@@ -31,7 +31,7 @@ function PowerPlatform.Helpers.InvokeDeleteAndWait
 					-Method Get `
 					-Token $accessToken `
 					-Uri $statusUri `
-					-Verbose:($isVerbose);
+					-Verbose:$isVerbose;
 
 				if ($response.Headers.ContainsKey('Retry-After'))
 				{
@@ -91,7 +91,7 @@ function PowerPlatform.Environment.Remove
 			-Method Post `
 			-Token $accessToken `
 			-Uri $requestUri `
-			-Verbose:($isVerbose);
+			-Verbose:$isVerbose;
 		
 		# get content
 		$responseContent = $response.Content | ConvertFrom-Json;
@@ -105,7 +105,7 @@ function PowerPlatform.Environment.Remove
 		$requestUri = "$($baseUri)/$($environmentName)?api-version=$($apiVersion)";
 
 		# make request and wait till complete
-		$null = PowerPlatform.Helpers.InvokeDeleteAndWait -accessToken $accessToken -uri $requestUri -Verbose:($isVerbose);
+		$null = PowerPlatform.Helpers.InvokeDeleteAndWait -accessToken $accessToken -uri $requestUri -Verbose:$isVerbose;
 	}
 }
 

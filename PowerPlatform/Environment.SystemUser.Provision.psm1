@@ -27,16 +27,39 @@ function PowerPlatform.Environment.SystemUser.Provision
 	(
 		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
 		[Parameter(Mandatory = $true)]	[String]		$applicationId,
-		[Parameter(Mandatory = $true)]	[String]		$businessUnitId,
+		[Parameter(Mandatory = $false)]	[String]		$businessUnitId = $null,
 		[Parameter(Mandatory = $true)]	[String]		$instanceUrl,
 		[Parameter(Mandatory = $true)]	[String[]]		$roleIds
 	)
 	process
 	{
-		$isVerbose = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent;
+		$apiVersion = 'v9.2';
+
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
+		if ([String]::IsNullOrEmpty($businessUnitId))
+		{
+			# create request uri to get root business unit
+			$requestUri = "$($instanceUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid%2Cname%2C_parentbusinessunitid_value&%24filter=_parentbusinessunitid_value%20eq%20null";
+
+			# execute request
+			$response = Invoke-WebRequest `
+				-Authentication Bearer `
+				-Method Get `
+				-Token $accessToken `
+				-Uri $requestUri `
+				-Verbose:$isVerbose;
+
+			# convert response content
+			$responseContent = $response.Content | ConvertFrom-Json;
+
+			# set business unit id
+			$businessUnitId = $responseContent.Value[0].businessunitid;
+		}
 
 		# create request uri
-		$requestUri = "$($instanceUrl)api/data/v9.2/systemusers";
+		$requestUri = "$($instanceUrl)api/data/$($apiVersion)/systemusers";
 
 		# create request body
 		$requestBody = [PSCustomObject]@{
@@ -61,11 +84,11 @@ function PowerPlatform.Environment.SystemUser.Provision
 		foreach ($roleId in $roleIds)
 		{
 			# create request uri
-			$requestUri = "$($instanceUrl)api/data/v9.2/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
+			$requestUri = "$($instanceUrl)api/data/$($apiVersion)/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
 
 			# create request body
 			$requestBody = [PSCustomObject]@{
-				'@odata.id' = "$($instanceUrl)api/data/v9.2/roles($roleId)"
+				'@odata.id' = "$($instanceUrl)api/data/$($apiVersion)/roles($roleId)"
 			} | ConvertTo-Json -Compress;
 
 			# execute request

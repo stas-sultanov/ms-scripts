@@ -45,15 +45,15 @@ function Azure.ResourceGroup.Provision
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# set context
-		$null = Set-AzContext -Subscription $subscription -Tenant $tenant -Verbose:($isVerbose);
+		$null = Set-AzContext -Subscription $subscription -Tenant $tenant -Verbose:$isVerbose;
 
 		# check if resource group exist
-		$null = Get-AzResourceGroup -ErrorAction SilentlyContinue -ErrorVariable notExist -Name $resourceGroupName -Verbose:($isVerbose);
+		$null = Get-AzResourceGroup -ErrorAction SilentlyContinue -ErrorVariable notExist -Name $resourceGroupName -Verbose:$isVerbose;
 
 		if ($notExist)
 		{
 			# create resource group
-			$null = New-AzResourceGroup -Force -Location $location -Name $resourceGroupName -Verbose:($isVerbose);
+			$null = New-AzResourceGroup -Force -Location $location -Name $resourceGroupName -Verbose:$isVerbose;
 		}
 
 		# provision resources
@@ -64,7 +64,7 @@ function Azure.ResourceGroup.Provision
 			-ResourceGroupName $resourceGroupName `
 			-TemplateFile $templateFile `
 			-TemplateParameterObject $templateParameters `
-			-Verbose:($isVerbose);
+			-Verbose:$isVerbose;
 
 		# return result
 		return $provisionResult.Outputs;
