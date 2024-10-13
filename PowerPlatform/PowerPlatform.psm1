@@ -46,7 +46,7 @@ function PowerPlatform.Environment.Provision
 		# create get exist request uri | filter does not work :(
 		$existingRequestUri = "$($baseRequestUri)?api-version=$($apiVersion)&$($requestSelect)";
 
-		# execute get exist request
+		Write-Verbose("Invoke request to look for existing environment.");
 		$existingResponse = Invoke-WebRequest `
 			-Authentication Bearer `
 			-Method Get `
@@ -55,19 +55,32 @@ function PowerPlatform.Environment.Provision
 			-Verbose:$isVerbose;
 
 		# filter by domain name
-		$environment = ($existingResponse.Content | ConvertFrom-Json -AsHashtable).value | Where-Object {
-			$_.properties.linkedEnvironmentMetadata.domainName -eq $settings.properties.linkedEnvironmentMetadata.domainName };
+		$existingEnvironmentList = ($existingResponse.Content | ConvertFrom-Json -AsHashtable).value;
+
+		$environment = $null;
+
+		foreach ($env in $existingEnvironmentList)
+		{
+			if ($env.properties.linkedEnvironmentMetadata.domainName -ne $settings.properties.linkedEnvironmentMetadata.domainName)
+			{
+				continue;
+			}
+
+			$environment = $env;
+
+			break;
+		}
 
 		if ($null -ne $environment)
 		{
-			Write-Verbose 'exist!';
+			Write-Verbose("Invoke request to patch environment and wait for result.");
 		}
 		else
 		{
 			# create create request uri
 			$createRequestUri = "$($baseRequestUri)?api-version=$($apiVersion)&retainOnProvisionFailure=false";
 
-			# make create request and wait till complete
+			Write-Verbose("Invoke request to create environment and wait for result.");
 			$createResponse = InvokeRequestAndWaitResult `
 				-accessToken $accessToken `
 				-body $settings `
@@ -81,7 +94,7 @@ function PowerPlatform.Environment.Provision
 			# create get config request uri
 			$configRequestUri = "$($baseRequestUri)/$($environmentName)?api-version=$($apiVersion)&$requestSelect";
 
-			# execute get config request
+			Write-Verbose("Invoke request to get environment configuration.");
 			$configResponse = Invoke-WebRequest `
 				-Authentication Bearer `
 				-Method Get `
