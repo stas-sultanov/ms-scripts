@@ -26,6 +26,7 @@ function PowerPlatform.Environment.Provision
 		Copyright © 2024 Stas Sultanov.
 	#>
 
+	[OutputType([ordered])]
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
@@ -43,7 +44,7 @@ function PowerPlatform.Environment.Provision
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create get exist request uri | filter does not work :(
-		$existingRequestUri = "$($baseRequestUri)?api-version=$($apiVersion)&$requestSelect";
+		$existingRequestUri = "$($baseRequestUri)?api-version=$($apiVersion)&$($requestSelect)";
 
 		# execute get exist request
 		$existingResponse = Invoke-WebRequest `
@@ -192,6 +193,7 @@ function PowerPlatform.ManagedIdentity.Provision
 		Copyright © 2024 Stas Sultanov.
 	#>
 
+	[OutputType([ordered])]
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
@@ -313,6 +315,7 @@ function PowerPlatform.SystemUser.Provision
 		Copyright © 2024 Stas Sultanov.
 	#>
 
+	[OutputType([ordered])]
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
@@ -502,7 +505,7 @@ function InvokeRequestAndWaitResult
 		else
 		{
 			# execute request
-			$response = Invoke-WebRequest `
+			$response = Invoke-WebRequest -Debug `
 				-Authentication Bearer `
 				-Method $method `
 				-Token $accessToken `
