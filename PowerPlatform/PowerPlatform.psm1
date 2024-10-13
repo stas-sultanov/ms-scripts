@@ -76,7 +76,7 @@ function PowerPlatform.Environment.Provision
 				-Verbose:$isVerbose;
 
 			# get environment name
-			$environmentName = ($createResponse.Content | ConvertFrom-Json).links.environment.path.Split('/')[4];
+			$environmentName = ($createResponse.Content | ConvertFrom-Json -AsHashtable).links.environment.path.Split('/')[4];
 
 			# create get config request uri
 			$configRequestUri = "$($baseRequestUri)/$($environmentName)?api-version=$($apiVersion)&$requestSelect";
@@ -90,7 +90,7 @@ function PowerPlatform.Environment.Provision
 				-Verbose:$isVerbose;
 
 			# convert config response content
-			$environment = $configResponse.Content | ConvertFrom-Json;
+			$environment = $configResponse.Content | ConvertFrom-Json -AsHashtable;
 		}
 
 		# create projection and return as result
@@ -146,7 +146,7 @@ function PowerPlatform.Environment.Remove
 			-Verbose:$isVerbose;
 
 		# get validate response content
-		$validateResponseContent = $validateResponse.Content | ConvertFrom-Json;
+		$validateResponseContent = $validateResponse.Content | ConvertFrom-Json -AsHashtable;
 
 		# check if can delete
 		if (-not $validateResponseContent.canInitiateDelete)
@@ -230,7 +230,7 @@ function PowerPlatform.ManagedIdentity.Provision
 			-Verbose:$isVerbose;
 
 		# convert response content
-		$responseContent = $response.Content | ConvertFrom-Json;
+		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
 
 		# create result from response
 		$result = [ordered]@{
@@ -346,7 +346,7 @@ function PowerPlatform.SystemUser.Provision
 				-Verbose:$isVerbose;
 
 			# convert response content
-			$responseContent = $response.Content | ConvertFrom-Json;
+			$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
 
 			# set business unit id
 			$businessUnitId = $responseContent.Value[0].businessunitid;
@@ -372,7 +372,7 @@ function PowerPlatform.SystemUser.Provision
 			-Verbose:$isVerbose;
 
 		# convert response content
-		$responseContent = $response.Content | ConvertFrom-Json;
+		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
 		
 		# create result from response
 		$result = @{
