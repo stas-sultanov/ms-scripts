@@ -46,13 +46,15 @@ function PowerPlatform.Environment.Provision
 		# create get exist request uri | filter does not work :(
 		$existingRequestUri = "$($baseRequestUri)?api-version=$($apiVersion)&$($requestSelect)";
 
-		Write-Verbose("Invoke request to look for existing environment.");
+		Write-Verbose("Invoke request to look for existing environment: $existingRequestUri");
 		$existingResponse = Invoke-WebRequest `
 			-Authentication Bearer `
 			-Method Get `
 			-Token $accessToken `
 			-Uri $existingRequestUri `
 			-Verbose:$isVerbose;
+
+		Write-Verbose("Invoke request to look for existing environment result: $($existingResponse.Content)");
 
 		# filter by domain name
 		$existingEnvironmentList = ($existingResponse.Content | ConvertFrom-Json -AsHashtable).value;
