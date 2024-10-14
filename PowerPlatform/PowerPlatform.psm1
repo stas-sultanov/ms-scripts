@@ -18,10 +18,10 @@ function PowerPlatform.Environment.Provision
 	.OUTPUTS
 		[OrderedDictionary]
 		On object with following fields:
-			- azureRegion	[System.String]
-			- domainName	[System.String]
-			- instanceUrl	[System.String]
-			- name		[System.String]
+			- azureRegion [System.String]
+			- domainName  [System.String]
+			- instanceUrl [System.String]
+			- name        [System.String]
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -30,82 +30,61 @@ function PowerPlatform.Environment.Provision
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $false)]	[string]	$apiVersion = '2024-05-01',
-		[Parameter(Mandatory = $true)]	[Object]	$settings
+		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[parameter(Mandatory = $false)] [string]       $apiVersion = '2024-05-01',
+		[Parameter(Mandatory = $true)]  [Object]       $settings
 	)
 	process
 	{
-		$baseRequestUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments';
-
+		$baseRequestUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform';
 		$requestSelect = '$select=properties.linkedEnvironmentMetadata.instanceUrl,properties.azureRegion,properties.linkedEnvironmentMetadata.domainName,name';
 
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# create get exist request uri | filter does not work :(
-		$existingRequestUri = "$($baseRequestUri)?api-version=$($apiVersion)&$($requestSelect)";
-
+		# query existing environments | odata $filter does not work :(
 		Write-Verbose("Invoke request to look for existing environment: $existingRequestUri");
 		$existingResponse = Invoke-WebRequest `
 			-Authentication Bearer `
 			-Method Get `
 			-Token $accessToken `
-			-Uri $existingRequestUri `
+			-Uri "$($baseRequestUri)/scopes/admin/environments?api-version=$($apiVersion)&$($requestSelect)" `
 			-Verbose:$isVerbose;
-
-		Write-Verbose("Invoke request to look for existing environment result: $($existingResponse.Content)");
 
 		# filter by domain name
 		$existingEnvironmentList = ($existingResponse.Content | ConvertFrom-Json -AsHashtable).value;
 
-		$environment = $null;
+		# try find environment with same domainName
+		$environment = $existingEnvironmentList | Where-Object { $_.properties.linkedEnvironmentMetadata.domainName -eq $settings.properties.linkedEnvironmentMetadata.domainName };
 
-		foreach ($env in $existingEnvironmentList)
+		# check if environment found
+		if ($null -eq $environment)
 		{
-			if ($env.properties.linkedEnvironmentMetadata.domainName -ne $settings.properties.linkedEnvironmentMetadata.domainName)
-			{
-				continue;
-			}
-
-			$environment = $env;
-
-			break;
-		}
-
-		if ($null -ne $environment)
-		{
-			Write-Verbose("Invoke request to patch environment and wait for result.");
-		}
-		else
-		{
-			# create create request uri
-			$createRequestUri = "$($baseRequestUri)?api-version=$($apiVersion)&retainOnProvisionFailure=false";
-
-			Write-Verbose("Invoke request to create environment and wait for result.");
+			# invoke request to create environment and wait for result
 			$createResponse = InvokeRequestAndWaitResult `
 				-accessToken $accessToken `
 				-body $settings `
 				-method Post `
-				-uri $createRequestUri `
+				-uri "$($baseRequestUri)/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false" `
 				-Verbose:$isVerbose;
 
 			# get environment name
 			$environmentName = ($createResponse.Content | ConvertFrom-Json -AsHashtable).links.environment.path.Split('/')[4];
 
-			# create get config request uri
-			$configRequestUri = "$($baseRequestUri)/$($environmentName)?api-version=$($apiVersion)&$requestSelect";
-
-			Write-Verbose("Invoke request to get environment configuration.");
+			# invoke request to get environment configuration
 			$configResponse = Invoke-WebRequest `
 				-Authentication Bearer `
 				-Method Get `
 				-Token $accessToken `
-				-Uri $configRequestUri `
+				-Uri "$($baseRequestUri)/scopes/admin/environments/$($environmentName)?api-version=$($apiVersion)&$($requestSelect)" `
 				-Verbose:$isVerbose;
 
 			# convert config response content
 			$environment = $configResponse.Content | ConvertFrom-Json -AsHashtable;
+		}
+		else
+		{
+			Write-Verbose('Invoke request to patch environment and wait for result.');
 		}
 
 		# create projection and return as result
@@ -138,9 +117,9 @@ function PowerPlatform.Environment.Remove
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $false)]	[string]	$apiVersion = '2021-04-01',
-		[Parameter(Mandatory = $true)]	[String]	$environmentName
+		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[parameter(Mandatory = $false)] [string]       $apiVersion = '2021-04-01',
+		[Parameter(Mandatory = $true)]  [String]       $environmentName
 	)
 	process
 	{
@@ -212,12 +191,12 @@ function PowerPlatform.ManagedIdentity.Provision
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]	[String]	$applicationId,
-		[Parameter(Mandatory = $false)]	[String]	$id = (New-Guid).Guid,
-		[Parameter(Mandatory = $true)]	[String]	$instanceUrl,
-		[Parameter(Mandatory = $true)]	[String]	$tenantId
+		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]  [String]       $applicationId,
+		[Parameter(Mandatory = $false)] [String]       $id = (New-Guid).Guid,
+		[Parameter(Mandatory = $true)]  [String]       $instanceUrl,
+		[Parameter(Mandatory = $true)]  [String]       $tenantId
 	)
 	process
 	{
@@ -280,10 +259,10 @@ function PowerPlatform.ManagedIdentity.Remove
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]	[String]	$id,
-		[Parameter(Mandatory = $true)]	[String]	$instanceUrl
+		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]  [String]       $id,
+		[Parameter(Mandatory = $true)]  [String]       $instanceUrl
 	)
 	process
 	{
@@ -334,12 +313,12 @@ function PowerPlatform.SystemUser.Provision
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $true)]	[String]	$applicationId,
-		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $false)]	[String]	$businessUnitId = $null,
-		[Parameter(Mandatory = $true)]	[String]	$instanceUrl,
-		[Parameter(Mandatory = $true)]	[String[]]	$roleIds
+		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $true)]  [String]       $applicationId,
+		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
+		[Parameter(Mandatory = $false)] [String]       $businessUnitId = $null,
+		[Parameter(Mandatory = $true)]  [String]       $instanceUrl,
+		[Parameter(Mandatory = $true)]  [String[]]     $roleIds
 	)
 	process
 	{
@@ -444,10 +423,10 @@ function PowerPlatform.SystemUser.Remove
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[Parameter(Mandatory = $false)]	[String]	$apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]	[String]	$id,
-		[Parameter(Mandatory = $true)]	[String]	$instanceUrl
+		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]  [String]       $id,
+		[Parameter(Mandatory = $true)]  [String]       $instanceUrl
 	)
 	process
 	{
@@ -491,10 +470,10 @@ function InvokeRequestAndWaitResult
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]		$accessToken,
-		[Parameter(Mandatory = $false)]	[Object]		$body = $null,
-		[Parameter(Mandatory = $true)]	[WebRequestMethod]	$method,
-		[Parameter(Mandatory = $true)]	[String]		$uri
+		[parameter(Mandatory = $true)]  [SecureString]     $accessToken,
+		[Parameter(Mandatory = $false)] [Object]           $body = $null,
+		[Parameter(Mandatory = $true)]  [WebRequestMethod] $method,
+		[Parameter(Mandatory = $true)]  [String]           $uri
 	)
 	process
 	{
@@ -520,7 +499,7 @@ function InvokeRequestAndWaitResult
 		else
 		{
 			# execute request
-			$response = Invoke-WebRequest -Debug `
+			$response = Invoke-WebRequest `
 				-Authentication Bearer `
 				-Method $method `
 				-Token $accessToken `

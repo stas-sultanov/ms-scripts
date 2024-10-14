@@ -15,8 +15,8 @@ function Entra.Application.Remove
 
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $true)]	[String]	$objectId
+		[parameter(Mandatory = $true)] [SecureString] $accessToken,
+		[parameter(Mandatory = $true)] [String]       $objectId
 	)
 	process
 	{

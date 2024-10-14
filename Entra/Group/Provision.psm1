@@ -29,15 +29,14 @@ function Entra.Group.Provision
 
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $false)]	[String[]]	$extraMembers = @(),
-		[parameter(Mandatory = $false)]	[String[]]	$extraOwners = @(),
-		[parameter(Mandatory = $true)]	[String]	$manifestFileName,
-		[parameter(Mandatory = $true)]	[String]	$name
+		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[parameter(Mandatory = $false)] [String[]]     $extraMembers = @(),
+		[parameter(Mandatory = $false)] [String[]]     $extraOwners = @(),
+		[parameter(Mandatory = $true)]  [String]       $manifestFileName,
+		[parameter(Mandatory = $true)]  [String]       $name
 	)
 	process
 	{
-
 		<# implementation #>
 
 		# connect to Graph

@@ -21,12 +21,12 @@ function Azure.SqlServer.Database.CreateUserForEntraIdentity
 
 	param
 	(
-		[parameter(Mandatory = $true)]	[String]	$accessToken,
-		[Parameter(Mandatory = $true)]	[String]	$databaseName,
-		[Parameter(Mandatory = $true)]	[String[]]	$databaseRoles,
-		[Parameter(Mandatory = $true)]	[String]	$databaseUserName,
-		[Parameter(Mandatory = $true)]	[String]	$identityObjectId,
-		[Parameter(Mandatory = $true)]	[String]	$serverFQDN
+		[parameter(Mandatory = $true)] [String]   $accessToken,
+		[Parameter(Mandatory = $true)] [String]   $databaseName,
+		[Parameter(Mandatory = $true)] [String[]] $databaseRoles,
+		[Parameter(Mandatory = $true)] [String]   $databaseUserName,
+		[Parameter(Mandatory = $true)] [String]   $identityObjectId,
+		[Parameter(Mandatory = $true)] [String]   $serverFQDN
 	)
 	process
 	{

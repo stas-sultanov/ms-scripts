@@ -16,8 +16,8 @@ function Azure.ApplicationInsights.CreateOrResetApiKey
 
 	param
 	(
-		[Parameter(Mandatory = $true)] [System.String]	$resourceId,
-		[Parameter(Mandatory = $true)] [System.String]	$keyName
+		[Parameter(Mandatory = $true)] [System.String] $resourceId,
+		[Parameter(Mandatory = $true)] [System.String] $keyName
 	)
 	process
 	{

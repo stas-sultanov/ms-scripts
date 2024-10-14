@@ -6,9 +6,9 @@ function Flatten
 	param
 	(
 		[Dictionary[String, String]] $result,
-		[JsonElement] $rootElement,
-		[String] $prefix,
-		[String] $delimiter
+		[JsonElement]                $rootElement,
+		[String]                     $prefix,
+		[String]                     $delimiter
 	)
 	process
 	{
@@ -65,9 +65,9 @@ function Azure.DevOps.LoadAsVariables
 
 	param
 	(
-		[parameter(Mandatory = $True)] [String] $fileName,
-		[String] $delimiter = '',
-		[String] $prefix = $null
+		[parameter(Mandatory = $true)]  [String] $fileName,
+		[parameter(Mandatory = $false)] [String] $delimiter = '',
+		[parameter(Mandatory = $false)] [String] $prefix = $null
 	)
 	process
 	{

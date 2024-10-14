@@ -18,9 +18,9 @@ function Entra.Identity.AssignRole
 
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]  $accessToken,
-		[Parameter(Mandatory = $true)]	[String]        $identityObjectId,
-		[Parameter(Mandatory = $true)]	[String]        $roleName
+		[parameter(Mandatory = $true)] [SecureString]  $accessToken,
+		[Parameter(Mandatory = $true)] [String]        $identityObjectId,
+		[Parameter(Mandatory = $true)] [String]        $roleName
 	)
 	process
 	{

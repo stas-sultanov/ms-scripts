@@ -30,14 +30,14 @@ function Azure.ResourceGroup.Provision
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[Parameter(Mandatory = $true)]	[Boolean]	$deploymentModeComplete,
-		[Parameter(Mandatory = $true)]	[String]	$deploymentName,
-		[Parameter(Mandatory = $true)]	[String]	$location,
-		[Parameter(Mandatory = $true)]	[String]	$resourceGroupName,
-		[Parameter(Mandatory = $true)]	[String]	$subscription,
-		[Parameter(Mandatory = $true)]	[String]	$templateFile,
-		[Parameter(Mandatory = $false)]	[Object]	$templateParameters = @{},
-		[Parameter(Mandatory = $true)]	[String]	$tenant
+		[Parameter(Mandatory = $true)]  [Boolean] $deploymentModeComplete,
+		[Parameter(Mandatory = $true)]  [String]  $deploymentName,
+		[Parameter(Mandatory = $true)]  [String]  $location,
+		[Parameter(Mandatory = $true)]  [String]  $resourceGroupName,
+		[Parameter(Mandatory = $true)]  [String]  $subscription,
+		[Parameter(Mandatory = $true)]  [String]  $templateFile,
+		[Parameter(Mandatory = $false)] [Object]  $templateParameters = @{},
+		[Parameter(Mandatory = $true)]  [String]  $tenant
 	)
 	process
 	{

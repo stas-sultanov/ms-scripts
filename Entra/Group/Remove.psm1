@@ -15,8 +15,8 @@ function Entra.Group.Remove
 
 	param
 	(
-		[parameter(Mandatory = $true)]	[SecureString]	$accessToken,
-		[parameter(Mandatory = $true)]	[String]	$groupObjectId
+		[parameter(Mandatory = $true)] [SecureString] $accessToken,
+		[parameter(Mandatory = $true)] [String]       $groupObjectId
 	)
 
 	<# implementation #>

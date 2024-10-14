@@ -16,9 +16,9 @@ function Azure.ResourceGroup.Remove
 	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[Parameter(Mandatory = $true)]	[String]	$resourceGroupName,
-		[Parameter(Mandatory = $true)]	[String]	$subscription,
-		[Parameter(Mandatory = $true)]	[String]	$tenant
+		[Parameter(Mandatory = $true)] [String] $resourceGroupName,
+		[Parameter(Mandatory = $true)] [String] $subscription,
+		[Parameter(Mandatory = $true)] [String] $tenant
 	)
 	process
 	{
