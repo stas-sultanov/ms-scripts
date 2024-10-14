@@ -1,9 +1,9 @@
 using namespace System;
 using namespace Microsoft.PowerShell.Commands;
 
-<# ######################################## #>
-<# Functions to manage Managed Environments #>
-<# ######################################## #>
+<# ################################ #>
+<# Functions to manage Environments #>
+<# ################################ #>
 
 class PowerPlatformEnvironmentInfo
 {
@@ -17,7 +17,7 @@ class PowerPlatformEnvironmentInfo
 	[String] $name
 
 	[ValidateNotNullOrEmpty()]
-	[String] $url
+	[Uri] $url
 }
 
 $EnvironmentApiUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform';
@@ -64,23 +64,17 @@ function PowerPlatform.Environment.Create
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# invoke request to create environment and wait for result
-		$response = InvokeRequestAndWaitResult `
-			-accessToken $accessToken `
-			-body $settings `
-			-method Post `
-			-uri "$($EnvironmentApiUri)/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false" `
-			-Verbose:$isVerbose;
+		# create web request uri
+		$uri = "$($EnvironmentApiUri)/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false";
+
+		# invoke web request to create environment and get to completion
+		$response = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $settings -method Post -uri $uri -Verbose:$isVerbose;
 
 		# get environment name
 		$name = ($response.Content | ConvertFrom-Json -AsHashtable).links.environment.path.Split('/')[4];
 
 		# retrieve environment info
-		$result = PowerPlatform.Environment.Retrieve `
-			-accessToken $accessToken `
-			-apiVersion $apiVersion `
-			-name $name `
-			-Verbose:$isVerbose;
+		$result = PowerPlatform.Environment.Retrieve -accessToken $accessToken -apiVersion $apiVersion -name $name -Verbose:$isVerbose;
 
 		return $result;
 	}
@@ -129,15 +123,13 @@ function PowerPlatform.Environment.Delete
 		# create requests base uri
 		$baseRequestUri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)";
 
-		# execute validate request
-		$validateResponse = Invoke-WebRequest `
-			-Authentication Bearer `
-			-Method Post `
-			-Token $accessToken `
-			-Uri "$($baseRequestUri)/validateDelete?api-version=$($apiVersion)" `
-			-Verbose:$isVerbose;
+		# create validation web request uri
+		$validateUri = "$($baseRequestUri)/validateDelete?api-version=$($apiVersion)";
 
-		# get validate response content
+		# invoke web request to validate deletion
+		$validateResponse = InvokeWebRequest -accessToken $accessToken -method Post -uri $validateUri -Verbose:$isVerbose;
+
+		# get validation response content
 		$validateResponseContent = $validateResponse.Content | ConvertFrom-Json -AsHashtable;
 
 		# check if can delete
@@ -146,12 +138,11 @@ function PowerPlatform.Environment.Delete
 			return $false;
 		}
 
-		# make request and wait till complete
-		$null = InvokeRequestAndWaitResult `
-			-accessToken $accessToken `
-			-uri "$($baseRequestUri)?api-version=$($apiVersion)" `
-			-method Delete `
-			-Verbose:$isVerbose;
+		# create deletion web request uri
+		$deleteUri = "$($baseRequestUri)?api-version=$($apiVersion)";
+
+		# invoke web request to delete and get to completion
+		$null = InvokeWebRequestAndGetComplete -accessToken $accessToken -method Delete -uri $deleteUri -Verbose:$isVerbose;
 
 		return $true;
 	}
@@ -194,13 +185,11 @@ function PowerPlatform.Environment.Retrieve
 	)
 	process
 	{
-		# invoke request to get environment info
-		$response = Invoke-WebRequest `
-			-Authentication Bearer `
-			-Method Get `
-			-Token $accessToken `
-			-Uri "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)&$($EnvironmentSelect)" `
-			-Verbose:$isVerbose;
+		# create web request uri
+		$uri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)&$($EnvironmentSelect)";
+
+		# invoke web request to get environment info
+		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -Verbose:$isVerbose;
 
 		# convert config response content
 		$environment = $response.Content | ConvertFrom-Json -AsHashtable;
@@ -253,14 +242,11 @@ function PowerPlatform.Environment.RetrieveAll
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# query existing environments | OData $filter does not work :(
-		Write-Verbose("Invoke request to look for existing environment: $existingRequestUri");
-		$response = Invoke-WebRequest `
-			-Authentication Bearer `
-			-Method Get `
-			-Token $accessToken `
-			-Uri "$($EnvironmentApiUri)/scopes/admin/environments?api-version=$($apiVersion)&$($EnvironmentSelect)" `
-			-Verbose:$isVerbose;
+		# create web request uri
+		$uri = "$($EnvironmentApiUri)/scopes/admin/environments?api-version=$($apiVersion)&$($EnvironmentSelect)";
+
+		# invoke web request to get all accessible environments | OData $filter does not work :(
+		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -Verbose:$isVerbose;
 
 		# convert content
 		$environmentList = ($response.Content | ConvertFrom-Json -AsHashtable).value;
@@ -324,21 +310,15 @@ function PowerPlatform.Environment.Update
 	{
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
+		# create web request uri
+		-uri "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)" `
 		
-		# make request and wait till complete
-		$null = InvokeRequestAndWaitResult `
-			-accessToken $accessToken `
-			-body $settings `
-			-uri "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)" `
-			-method Patch `
-			-Verbose:$isVerbose;
+		# invoke web request to update the environment and get to completion
+		$null = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $settings -uri $uri -method Patch -Verbose:$isVerbose;
 
 		# retrieve environment info
-		$result = PowerPlatform.Environment.Retrieve `
-			-accessToken $accessToken `
-			-apiVersion $apiVersion `
-			-name $name `
-			-Verbose:$isVerbose;
+		$result = PowerPlatform.Environment.Retrieve -accessToken $accessToken -apiVersion $apiVersion -name $name -Verbose:$isVerbose;
 
 		return $result;
 	}
@@ -392,10 +372,10 @@ function PowerPlatform.ManagedIdentity.Provision
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create request uri
-		$requestUri = "$($instanceUrl)api/data/$($apiVersion)/managedidentities";
+		$uri = "$($instanceUrl)api/data/$($apiVersion)/managedidentities";
 
 		# create request body
-		$requestBody = @{
+		$body = @{
 			applicationid     = $applicationId
 			credentialsource  = 2
 			managedidentityid = $id
@@ -404,12 +384,7 @@ function PowerPlatform.ManagedIdentity.Provision
 		};
 
 		# make request
-		$response = InvokeRequestAndWaitResult `
-			-accessToken $accessToken `
-			-body $requestBody `
-			-method Post `
-			-uri $requestUri `
-			-Verbose:$isVerbose;
+		$response = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $body -method Post -uri $uri -Verbose:$isVerbose;
 
 		# convert response content
 		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
@@ -458,17 +433,21 @@ function PowerPlatform.ManagedIdentity.Remove
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create request uri
-		$requestUri = "$($instanceUrl)api/data/$($apiVersion)/managedidentities($($id))";
+		$uri = "$($instanceUrl)api/data/$($apiVersion)/managedidentities($($id))";
 
 		# execute request
 		$null = Invoke-WebRequest `
 			-Authentication Bearer `
 			-Method Delete `
 			-Token $accessToken `
-			-Uri $requestUri `
+			-Uri $uri `
 			-Verbose:$isVerbose;
 	}
 }
+
+<# ################################ #>
+<# Functions to manage System Users #>
+<# ################################ #>
 
 function PowerPlatform.SystemUser.Provision
 {
@@ -517,14 +496,14 @@ function PowerPlatform.SystemUser.Provision
 		if ([String]::IsNullOrEmpty($businessUnitId))
 		{
 			# create request uri to get root business unit
-			$requestUri = "$($instanceUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
+			$uri = "$($instanceUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
 
 			# execute request
 			$response = Invoke-WebRequest `
 				-Authentication Bearer `
 				-Method Get `
 				-Token $accessToken `
-				-Uri $requestUri `
+				-Uri $uri `
 				-Verbose:$isVerbose;
 
 			# convert response content
@@ -535,7 +514,7 @@ function PowerPlatform.SystemUser.Provision
 		}
 
 		# create request uri
-		$requestUri = "$($instanceUrl)api/data/$($apiVersion)/systemusers";
+		$uri = "$($instanceUrl)api/data/$($apiVersion)/systemusers";
 
 		# create request body
 		$requestBody = [PSCustomObject]@{
@@ -546,11 +525,11 @@ function PowerPlatform.SystemUser.Provision
 		};
 
 		# make request
-		$response = InvokeRequestAndWaitResult `
+		$response = InvokeWebRequestAndGetComplete `
 			-accessToken $accessToken `
 			-body $requestBody `
 			-method Post `
-			-uri $requestUri `
+			-uri $uri `
 			-Verbose:$isVerbose;
 
 		# convert response content
@@ -566,7 +545,7 @@ function PowerPlatform.SystemUser.Provision
 		foreach ($roleId in $roleIds)
 		{
 			# create request uri
-			$requestUri = "$($instanceUrl)api/data/$($apiVersion)/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
+			$uri = "$($instanceUrl)api/data/$($apiVersion)/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
 
 			# create request body
 			$requestBody = [PSCustomObject]@{
@@ -580,7 +559,7 @@ function PowerPlatform.SystemUser.Provision
 				-ContentType 'application/json' `
 				-Method Post `
 				-Token $accessToken `
-				-Uri $requestUri `
+				-Uri $uri `
 				-Verbose:$isVerbose;
 
 			$result.roleIds.Add($roleId);
@@ -590,10 +569,6 @@ function PowerPlatform.SystemUser.Provision
 		return $result;
 	}
 }
-
-<# ################################ #>
-<# Functions to manage System Users #>
-<# ################################ #>
 
 function PowerPlatform.SystemUser.Remove
 {
@@ -626,14 +601,14 @@ function PowerPlatform.SystemUser.Remove
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create request uri
-		$requestUri = "$($instanceUrl)api/data/$($apiVersion)/systemusers($($id))";
+		$uri = "$($instanceUrl)api/data/$($apiVersion)/systemusers($($id))";
 
 		# execute disable request
-		$null = InvokeRequestAndWaitResult `
+		$null = InvokeWebRequestAndGetComplete `
 			-accessToken $accessToken `
 			-body @{ isdisabled = $true } `
 			-method Patch `
-			-uri $requestUri `
+			-uri $uri `
 			-Verbose:$isVerbose;
 
 		# execute delete request
@@ -642,7 +617,7 @@ function PowerPlatform.SystemUser.Remove
 			-Authentication Bearer `
 			-Method Delete `
 			-Token $accessToken `
-			-Uri $requestUri `
+			-Uri $uri `
 			-Verbose:$isVerbose;
 
 		# execute delete request
@@ -651,7 +626,7 @@ function PowerPlatform.SystemUser.Remove
 			-Authentication Bearer `
 			-Method Delete `
 			-Token $accessToken `
-			-Uri $requestUri `
+			-Uri $uri `
 			-Verbose:$isVerbose;
 	}
 }
@@ -660,47 +635,70 @@ function PowerPlatform.SystemUser.Remove
 <# Internal helper functions #>
 <# ######################### #>
 
-function InvokeRequestAndWaitResult
+function InvokeWebRequest
 {
 	[CmdletBinding()]
+	[OutputType([WebResponseObject])]
 	param
 	(
 		[Parameter(Mandatory = $true)]  [SecureString]     $accessToken,
 		[Parameter(Mandatory = $false)] [Object]           $body = $null,
 		[Parameter(Mandatory = $true)]  [WebRequestMethod] $method,
-		[Parameter(Mandatory = $true)]  [String]           $uri
+		[Parameter(Mandatory = $true)]  [Uri]              $uri
 	)
 	process
 	{
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		$response = $null;
-
 		if ($null -eq $body)
 		{
 			# execute request
-			$response = Invoke-WebRequest `
+			return Invoke-WebRequest `
 				-Authentication Bearer `
 				-Method $method `
 				-Token $accessToken `
 				-Uri $uri `
 				-Verbose:$isVerbose;
 		}
-		else
-		{
-			$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
 
-			# execute request
-			$response = Invoke-WebRequest `
-				-Authentication Bearer `
-				-Body $requestBody `
-				-ContentType 'application/json' `
-				-Method $method `
-				-Token $accessToken `
-				-Uri $uri `
-				-Verbose:$isVerbose;
-		}
+		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
+
+		# execute request
+		return Invoke-WebRequest `
+			-Authentication Bearer `
+			-Body $requestBody `
+			-ContentType 'application/json' `
+			-Method $method `
+			-Token $accessToken `
+			-Uri $uri `
+			-Verbose:$isVerbose;
+	}
+}
+
+function InvokeWebRequestAndGetComplete
+{
+	[CmdletBinding()]
+	[OutputType([WebResponseObject])]
+	param
+	(
+		[Parameter(Mandatory = $true)]  [SecureString]     $accessToken,
+		[Parameter(Mandatory = $false)] [Object]           $body = $null,
+		[Parameter(Mandatory = $true)]  [WebRequestMethod] $method,
+		[Parameter(Mandatory = $true)]  [Uri]              $uri
+	)
+	process
+	{
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
+		# invoke request and get response
+		$response = InvokeWebRequest `
+			-accessToken $accessToken `
+			-body $body `
+			-method $method `
+			-uri $uri `
+			-Verbose:$isVerbose;
 
 		if (!$response.Headers.ContainsKey('Location'))
 		{
@@ -713,11 +711,10 @@ function InvokeRequestAndWaitResult
 		while ($true)
 		{
 			# make status request
-			$response = Invoke-WebRequest `
-				-Authentication Bearer `
-				-Method Get `
-				-Token $accessToken `
-				-Uri $statusUri `
+			$response = InvokeWebRequest `
+				-accessToken $accessToken `
+				-method Get `
+				-uri $statusUri `
 				-Verbose:$isVerbose;
 
 			if (!$response.Headers.ContainsKey('Retry-After'))
