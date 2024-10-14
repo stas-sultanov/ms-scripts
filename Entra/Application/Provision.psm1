@@ -139,7 +139,7 @@ function Entra.Application.Provision
 
 		<# provision PublisherDomain #>
 
-		if (![string]::IsNullOrEmpty($desiredState.PublisherDomain))
+		if (![String]::IsNullOrEmpty($desiredState.PublisherDomain))
 		{
 			Write-Host 'App Registration Update PublisherDomain';
 
@@ -149,7 +149,7 @@ function Entra.Application.Provision
 		<# provision Logo #>
 
 		# check if logo file name was specified
-		if (![string]::IsNullOrEmpty($logoFileName))
+		if (![String]::IsNullOrEmpty($logoFileName))
 		{
 			Write-Host 'App Registration Update Logo';
 
@@ -221,7 +221,7 @@ function Entra.Application.Provision
 
 		<# provision VerifiedPublisher #>
 
-		if (($null -ne $desiredState.VerifiedPublisher) -and ![string]::IsNullOrEmpty($desiredState.VerifiedPublisher.VerifiedPublisherId))
+		if (($null -ne $desiredState.VerifiedPublisher) -and ![String]::IsNullOrEmpty($desiredState.VerifiedPublisher.VerifiedPublisherId))
 		{
 			Write-Host 'App Registration Update VerifiedPublisher';
 

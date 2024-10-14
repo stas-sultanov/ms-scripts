@@ -41,8 +41,11 @@
 
 	# Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 	FunctionsToExport      = @(
-		'PowerPlatform.Environment.Provision',
-		'PowerPlatform.Environment.Remove',
+		'PowerPlatform.Environment.Create',
+		'PowerPlatform.Environment.Delete',
+		'PowerPlatform.Environment.Retrieve',
+		'PowerPlatform.Environment.RetrieveAll',
+		'PowerPlatform.Environment.Update',
 		'PowerPlatform.ManagedIdentity.Provision',
 		'PowerPlatform.ManagedIdentity.Remove', 
 		'PowerPlatform.SystemUser.Provision',

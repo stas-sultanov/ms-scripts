@@ -1,14 +1,36 @@
 using namespace System;
 using namespace Microsoft.PowerShell.Commands;
 
-function PowerPlatform.Environment.Provision
+<# ######################################## #>
+<# Functions to manage Managed Environments #>
+<# ######################################## #>
+
+class PowerPlatformEnvironmentInfo
+{
+	[ValidateNotNullOrEmpty()]
+	[String] $azureLocation
+
+	[ValidateNotNullOrEmpty()]
+	[String] $domainName
+
+	[ValidateNotNullOrEmpty()]
+	[String] $name
+
+	[ValidateNotNullOrEmpty()]
+	[String] $url
+}
+
+$EnvironmentApiUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform';
+
+$EnvironmentSelect = '$select=properties.linkedEnvironmentMetadata.instanceUrl,properties.azureRegion,properties.linkedEnvironmentMetadata.domainName,name';
+
+function PowerPlatform.Environment.Create
 {
 	<#
 	.SYNOPSIS
-		Provision an environment within the Power Platform tenant.
+		Create an environment within the Power Platform tenant.
 	.DESCRIPTION
 		Can be executed by Identity which has Power Platform Administrator role within Entra.
-		Routine assumes that domainName is a unieque identifier of the environment.
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
@@ -16,127 +38,103 @@ function PowerPlatform.Environment.Provision
 	.PARAMETER settings
 		Object that contains all settings required to create an environment.
 	.OUTPUTS
-		[OrderedDictionary]
-		On object with following fields:
-			- azureRegion [System.String]
-			- domainName  [System.String]
-			- instanceUrl [System.String]
-			- name        [System.String]
+		Short information about the environment.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
 
-	[OutputType([ordered])]
-	[CmdletBinding(DefaultParameterSetName = 'User')]
+	[CmdletBinding()]
+	[OutputType([PowerPlatformEnvironmentInfo])]
 	param
 	(
-		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
-		[parameter(Mandatory = $false)] [string]       $apiVersion = '2024-05-01',
-		[Parameter(Mandatory = $true)]  [Object]       $settings
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[SecureString] $accessToken,
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $false)]
+		[String] $apiVersion = '2024-05-01',
+
+		[ValidateNotNull()]
+		[Parameter(Mandatory = $true)]
+		[Object] $settings
 	)
 	process
 	{
-		$baseRequestUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform';
-		$requestSelect = '$select=properties.linkedEnvironmentMetadata.instanceUrl,properties.azureRegion,properties.linkedEnvironmentMetadata.domainName,name';
-
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# query existing environments | odata $filter does not work :(
-		Write-Verbose("Invoke request to look for existing environment: $existingRequestUri");
-		$existingResponse = Invoke-WebRequest `
-			-Authentication Bearer `
-			-Method Get `
-			-Token $accessToken `
-			-Uri "$($baseRequestUri)/scopes/admin/environments?api-version=$($apiVersion)&$($requestSelect)" `
+		# invoke request to create environment and wait for result
+		$response = InvokeRequestAndWaitResult `
+			-accessToken $accessToken `
+			-body $settings `
+			-method Post `
+			-uri "$($EnvironmentApiUri)/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false" `
 			-Verbose:$isVerbose;
 
-		# filter by domain name
-		$existingEnvironmentList = ($existingResponse.Content | ConvertFrom-Json -AsHashtable).value;
+		# get environment name
+		$name = ($response.Content | ConvertFrom-Json -AsHashtable).links.environment.path.Split('/')[4];
 
-		# try find environment with same domainName
-		$environment = $existingEnvironmentList | Where-Object { $_.properties.linkedEnvironmentMetadata.domainName -eq $settings.properties.linkedEnvironmentMetadata.domainName };
+		# retrieve environment info
+		$result = PowerPlatform.Environment.Retrieve `
+			-accessToken $accessToken `
+			-apiVersion $apiVersion `
+			-name $name `
+			-Verbose:$isVerbose;
 
-		# check if environment found
-		if ($null -eq $environment)
-		{
-			# invoke request to create environment and wait for result
-			$createResponse = InvokeRequestAndWaitResult `
-				-accessToken $accessToken `
-				-body $settings `
-				-method Post `
-				-uri "$($baseRequestUri)/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false" `
-				-Verbose:$isVerbose;
-
-			# get environment name
-			$environmentName = ($createResponse.Content | ConvertFrom-Json -AsHashtable).links.environment.path.Split('/')[4];
-
-			# invoke request to get environment configuration
-			$configResponse = Invoke-WebRequest `
-				-Authentication Bearer `
-				-Method Get `
-				-Token $accessToken `
-				-Uri "$($baseRequestUri)/scopes/admin/environments/$($environmentName)?api-version=$($apiVersion)&$($requestSelect)" `
-				-Verbose:$isVerbose;
-
-			# convert config response content
-			$environment = $configResponse.Content | ConvertFrom-Json -AsHashtable;
-		}
-		else
-		{
-			Write-Verbose('Invoke request to patch environment and wait for result.');
-		}
-
-		# create projection and return as result
-		return [ordered]@{
-			azureRegion = $environment.properties.azureRegion
-			domainName  = $environment.properties.linkedEnvironmentMetadata.domainName
-			instanceUrl = $environment.properties.linkedEnvironmentMetadata.instanceUrl
-			name        = $environment.name
-		};
+		return $result;
 	}
 }
 
-function PowerPlatform.Environment.Remove
+function PowerPlatform.Environment.Delete
 {
 	<#
 	.SYNOPSIS
-		Remove an environment from the Power Platform tenant.
+		Delete an environment from the Power Platform tenant.
 	.DESCRIPTION
 		Can be executed by Identity which has Power Platform Administrator role within Entra.
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
 		Version of the Power Platform API to use.
-	.PARAMETER environmentName
+	.PARAMETER name
 		Name of the Power Platform environment.
+	.OUTPUTS
+		True if environment deleted, False otherwise.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
 
-	[CmdletBinding(DefaultParameterSetName = 'User')]
+	[CmdletBinding()]
+	[OutputType([Boolean])]
 	param
 	(
-		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
-		[parameter(Mandatory = $false)] [string]       $apiVersion = '2021-04-01',
-		[Parameter(Mandatory = $true)]  [String]       $environmentName
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[SecureString] $accessToken,
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $false)]
+		[String] $apiVersion = '2021-04-01',
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[String] $name
 	)
 	process
 	{
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		$baseUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/scopes/admin/environments';
-
-		# create request uri to validate delete
-		$validateRequestUri = "$($baseUri)/$($environmentName)/validateDelete?api-version=$($apiVersion)";
+		# create requests base uri
+		$baseRequestUri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)";
 
 		# execute validate request
 		$validateResponse = Invoke-WebRequest `
 			-Authentication Bearer `
 			-Method Post `
 			-Token $accessToken `
-			-Uri $validateRequestUri `
+			-Uri "$($baseRequestUri)/validateDelete?api-version=$($apiVersion)" `
 			-Verbose:$isVerbose;
 
 		# get validate response content
@@ -145,20 +143,210 @@ function PowerPlatform.Environment.Remove
 		# check if can delete
 		if (-not $validateResponseContent.canInitiateDelete)
 		{
-			return 'can not delete';
+			return $false;
 		}
-		
-		# create request uri to delete
-		$requestUri = "$($baseUri)/$($environmentName)?api-version=$($apiVersion)";
 
 		# make request and wait till complete
 		$null = InvokeRequestAndWaitResult `
 			-accessToken $accessToken `
-			-uri $requestUri `
+			-uri "$($baseRequestUri)?api-version=$($apiVersion)" `
 			-method Delete `
 			-Verbose:$isVerbose;
+
+		return $true;
 	}
 }
+
+function PowerPlatform.Environment.Retrieve
+{
+	<#
+	.SYNOPSIS
+		Retrieve an environment info.
+	.DESCRIPTION
+		Can be executed by Identity which has Power Platform Administrator role within Entra.
+	.PARAMETER accessToken
+		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
+	.PARAMETER apiVersion
+		Version of the Power Platform API to use.
+	.PARAMETER name
+		Name of the Power Platform environment.
+	.OUTPUTS
+		Short information about the environment.
+	.NOTES
+		Copyright © 2024 Stas Sultanov.
+	#>
+
+	[CmdletBinding()]
+	[OutputType([PowerPlatformEnvironmentInfo])]
+	param
+	(
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[SecureString] $accessToken,
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $false)]
+		[String] $apiVersion = '2024-05-01',
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[String] $name
+	)
+	process
+	{
+		# invoke request to get environment info
+		$response = Invoke-WebRequest `
+			-Authentication Bearer `
+			-Method Get `
+			-Token $accessToken `
+			-Uri "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)&$($EnvironmentSelect)" `
+			-Verbose:$isVerbose;
+
+		# convert config response content
+		$environment = $response.Content | ConvertFrom-Json -AsHashtable;
+
+		# create result
+		$result = [PowerPlatformEnvironmentInfo]@{
+			azureLocation = $environment.properties.azureRegion
+			domainName    = $environment.properties.linkedEnvironmentMetadata.domainName
+			name          = $environment.name
+			url           = $environment.properties.linkedEnvironmentMetadata.instanceUrl
+		};
+
+		return $result;
+	}
+}
+
+function PowerPlatform.Environment.RetrieveAll
+{
+	<#
+	.SYNOPSIS
+		Retrieve information about all accessible environments.
+	.DESCRIPTION
+		Can be executed by Identity which has Power Platform Administrator role within Entra.
+	.PARAMETER accessToken
+		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
+	.PARAMETER apiVersion
+		Version of the Power Platform API to use.
+	.PARAMETER settings
+		Object that contains all settings required to create an environment.
+	.OUTPUTS
+		Array of objects that each provides a short information about the environments.
+	.NOTES
+		Copyright © 2024 Stas Sultanov.
+	#>
+
+	[CmdletBinding()]
+	[OutputType([PowerPlatformEnvironmentInfo[]])]
+	param
+	(
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[SecureString] $accessToken,
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $false)]
+		[String] $apiVersion = '2024-05-01'
+	)
+	process
+	{
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
+		# query existing environments | OData $filter does not work :(
+		Write-Verbose("Invoke request to look for existing environment: $existingRequestUri");
+		$response = Invoke-WebRequest `
+			-Authentication Bearer `
+			-Method Get `
+			-Token $accessToken `
+			-Uri "$($EnvironmentApiUri)/scopes/admin/environments?api-version=$($apiVersion)&$($EnvironmentSelect)" `
+			-Verbose:$isVerbose;
+
+		# convert content
+		$environmentList = ($response.Content | ConvertFrom-Json -AsHashtable).value;
+
+		# convert items
+		$result = $environmentList | ForEach-Object {
+			[PowerPlatformEnvironmentInfo]@{
+				azureLocation = $_.properties.azureRegion
+				domainName    = $_.properties.linkedEnvironmentMetadata.domainName
+				name          = $_.name
+				url           = $_.properties.linkedEnvironmentMetadata.instanceUrl
+			}
+		};
+
+		return [PowerPlatformEnvironmentInfo[]] $result;
+	}
+}
+
+function PowerPlatform.Environment.Update
+{
+	<#
+	.SYNOPSIS
+		Update an environment within the Power Platform tenant.
+	.DESCRIPTION
+		Can be executed by Identity which has Power Platform Administrator role within Entra.
+	.PARAMETER accessToken
+		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
+	.PARAMETER apiVersion
+		Version of the Power Platform API to use.
+	.PARAMETER name
+		Name of the Power Platform environment.
+	.PARAMETER settings
+		Object that contains all settings required to update an environment.
+	.OUTPUTS
+		Short information about the environment.
+	.NOTES
+		Copyright © 2024 Stas Sultanov.
+	#>
+
+	[CmdletBinding()]
+	[OutputType([PowerPlatformEnvironmentInfo])]
+	param
+	(
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[SecureString] $accessToken,
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $false)]
+		[String] $apiVersion = '2024-05-01',
+
+		[ValidateNotNullOrEmpty()]
+		[Parameter(Mandatory = $true)]
+		[String] $name,
+
+		[ValidateNotNull()]
+		[Parameter(Mandatory = $true)]
+		[Object] $settings
+	)
+	process
+	{
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+		
+		# make request and wait till complete
+		$null = InvokeRequestAndWaitResult `
+			-accessToken $accessToken `
+			-body $settings `
+			-uri "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)" `
+			-method Patch `
+			-Verbose:$isVerbose;
+
+		# retrieve environment info
+		$result = PowerPlatform.Environment.Retrieve `
+			-accessToken $accessToken `
+			-apiVersion $apiVersion `
+			-name $name `
+			-Verbose:$isVerbose;
+
+		return $result;
+	}
+}
+
+<# ###################################### #>
+<# Functions to manage Managed Identities #>
+<# ###################################### #>
 
 function PowerPlatform.ManagedIdentity.Provision
 {
@@ -187,11 +375,11 @@ function PowerPlatform.ManagedIdentity.Provision
 		Copyright © 2024 Stas Sultanov.
 	#>
 
+	[CmdletBinding()]
 	[OutputType([ordered])]
-	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [String]       $applicationId,
 		[Parameter(Mandatory = $false)] [String]       $id = (New-Guid).Guid,
@@ -248,7 +436,7 @@ function PowerPlatform.ManagedIdentity.Remove
 	.PARAMETER apiVersion
 		Version of the Power Platform API to use.
 	.PARAMETER id
-		Id of the Managed Identity within the Power Platform Enviornment.
+		Id of the Managed Identity within the Power Platform Environment.
 	.PARAMETER instanceUrl
 		Url of the Power Platform environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
@@ -256,10 +444,10 @@ function PowerPlatform.ManagedIdentity.Remove
 		Copyright © 2024 Stas Sultanov.
 	#>
 
-	[CmdletBinding(DefaultParameterSetName = 'User')]
+	[CmdletBinding()]
 	param
 	(
-		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [String]       $id,
 		[Parameter(Mandatory = $true)]  [String]       $instanceUrl
@@ -309,11 +497,11 @@ function PowerPlatform.SystemUser.Provision
 		Copyright © 2024 Stas Sultanov.
 	#>
 
+	[CmdletBinding()]
 	[OutputType([ordered])]
-	[CmdletBinding(DefaultParameterSetName = 'User')]
 	param
 	(
-		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 		[Parameter(Mandatory = $true)]  [String]       $applicationId,
 		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $false)] [String]       $businessUnitId = $null,
@@ -403,11 +591,15 @@ function PowerPlatform.SystemUser.Provision
 	}
 }
 
+<# ################################ #>
+<# Functions to manage System Users #>
+<# ################################ #>
+
 function PowerPlatform.SystemUser.Remove
 {
 	<#
 	.SYNOPSIS
-		Remove a Sysetm User from the Power Platform environment.
+		Remove a System User from the Power Platform environment.
 	.DESCRIPTION
 		More information here: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/systemuser
 	.PARAMETER accessToken
@@ -415,15 +607,15 @@ function PowerPlatform.SystemUser.Remove
 	.PARAMETER apiVersion
 		Version of the Power Platform API to use.
 	.PARAMETER id
-		Id of the System User within the Power Platform Enviornment.
+		Id of the System User within the Power Platform Environment.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
 
-	[CmdletBinding(DefaultParameterSetName = 'User')]
+	[CmdletBinding()]
 	param
 	(
-		[parameter(Mandatory = $true)]  [SecureString] $accessToken,
+		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [String]       $id,
 		[Parameter(Mandatory = $true)]  [String]       $instanceUrl
@@ -464,13 +656,16 @@ function PowerPlatform.SystemUser.Remove
 	}
 }
 
-<# this is an internal helper function #>
+<# ######################### #>
+<# Internal helper functions #>
+<# ######################### #>
+
 function InvokeRequestAndWaitResult
 {
-	[CmdletBinding(DefaultParameterSetName = 'User')]
+	[CmdletBinding()]
 	param
 	(
-		[parameter(Mandatory = $true)]  [SecureString]     $accessToken,
+		[Parameter(Mandatory = $true)]  [SecureString]     $accessToken,
 		[Parameter(Mandatory = $false)] [Object]           $body = $null,
 		[Parameter(Mandatory = $true)]  [WebRequestMethod] $method,
 		[Parameter(Mandatory = $true)]  [String]           $uri
@@ -482,7 +677,17 @@ function InvokeRequestAndWaitResult
 
 		$response = $null;
 
-		if (($method -eq 'Patch') -or ($method -eq 'Post') -or ($method -eq 'Put'))
+		if ($null -eq $body)
+		{
+			# execute request
+			$response = Invoke-WebRequest `
+				-Authentication Bearer `
+				-Method $method `
+				-Token $accessToken `
+				-Uri $uri `
+				-Verbose:$isVerbose;
+		}
+		else
 		{
 			$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
 
@@ -491,16 +696,6 @@ function InvokeRequestAndWaitResult
 				-Authentication Bearer `
 				-Body $requestBody `
 				-ContentType 'application/json' `
-				-Method $method `
-				-Token $accessToken `
-				-Uri $uri `
-				-Verbose:$isVerbose;
-		}
-		else
-		{
-			# execute request
-			$response = Invoke-WebRequest `
-				-Authentication Bearer `
 				-Method $method `
 				-Token $accessToken `
 				-Uri $uri `

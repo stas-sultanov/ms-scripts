@@ -11,7 +11,7 @@ function Azure.CDN.EnableSecure
 
 	param
 	(
-		[Parameter(Mandatory = $true)] [string] $resourceGroupName
+		[Parameter(Mandatory = $true)] [String] $resourceGroupName
 	)
 	process
 	{

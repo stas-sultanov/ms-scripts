@@ -12,7 +12,7 @@ function Flatten
 	)
 	process
 	{
-		$rootPrefix = [string]::IsNullOrEmpty($prefix) ? '' : $prefix + $delimiter;
+		$rootPrefix = [String]::IsNullOrEmpty($prefix) ? '' : $prefix + $delimiter;
 
 		if ($rootElement.ValueKind -eq [JsonValueKind]::Array)
 		{
@@ -71,7 +71,7 @@ function Azure.DevOps.LoadAsVariables
 	)
 	process
 	{
-		# get file content as string
+		# get file content as String
 		$fileContent = Get-Content $fileName | Out-String;
 
 		# deserialize document
