@@ -7,17 +7,13 @@ using namespace Microsoft.PowerShell.Commands;
 
 class PowerPlatformEnvironmentInfo
 {
-	[ValidateNotNullOrEmpty()]
-	[String] $azureLocation
+	[ValidateNotNullOrEmpty()] [String] $azureLocation
 
-	[ValidateNotNullOrEmpty()]
-	[String] $domainName
+	[ValidateNotNullOrEmpty()] [String] $domainName
 
-	[ValidateNotNullOrEmpty()]
-	[String] $name
+	[ValidateNotNullOrEmpty()] [String] $name
 
-	[ValidateNotNullOrEmpty()]
-	[Uri] $url
+	[ValidateNotNullOrEmpty()] [Uri]    $url
 }
 
 $EnvironmentApiUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform';
@@ -30,7 +26,7 @@ function PowerPlatform.Environment.Create
 	.SYNOPSIS
 		Create an environment within the Power Platform tenant.
 	.DESCRIPTION
-		Can be executed by Identity which has Power Platform Administrator role within Entra.
+		Can be executed by an Identity that has Power Platform Administrator role within Entra.
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
@@ -47,17 +43,11 @@ function PowerPlatform.Environment.Create
 	[OutputType([PowerPlatformEnvironmentInfo])]
 	param
 	(
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[SecureString] $accessToken,
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $false)]
-		[String] $apiVersion = '2024-05-01',
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $false)] [String]       $apiVersion = '2024-05-01',
 
-		[ValidateNotNull()]
-		[Parameter(Mandatory = $true)]
-		[Object] $settings
+		[ValidateNotNull()]        [Parameter(Mandatory = $true)]  [Object]       $settings
 	)
 	process
 	{
@@ -86,7 +76,7 @@ function PowerPlatform.Environment.Delete
 	.SYNOPSIS
 		Delete an environment from the Power Platform tenant.
 	.DESCRIPTION
-		Can be executed by Identity which has Power Platform Administrator role within Entra.
+		Can be executed by an Identity that has Power Platform Administrator role within Entra.
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
@@ -103,17 +93,11 @@ function PowerPlatform.Environment.Delete
 	[OutputType([Boolean])]
 	param
 	(
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[SecureString] $accessToken,
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $false)]
-		[String] $apiVersion = '2021-04-01',
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $false)] [String]       $apiVersion = '2021-04-01',
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[String] $name
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $name
 	)
 	process
 	{
@@ -154,7 +138,7 @@ function PowerPlatform.Environment.Retrieve
 	.SYNOPSIS
 		Retrieve an environment info.
 	.DESCRIPTION
-		Can be executed by Identity which has Power Platform Administrator role within Entra.
+		Can be executed by an Identity that has Power Platform Administrator role within Entra.
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
@@ -171,17 +155,11 @@ function PowerPlatform.Environment.Retrieve
 	[OutputType([PowerPlatformEnvironmentInfo])]
 	param
 	(
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[SecureString] $accessToken,
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $false)]
-		[String] $apiVersion = '2024-05-01',
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $false)] [String]       $apiVersion = '2024-05-01',
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[String] $name
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $name
 	)
 	process
 	{
@@ -212,7 +190,7 @@ function PowerPlatform.Environment.RetrieveAll
 	.SYNOPSIS
 		Retrieve information about all accessible environments.
 	.DESCRIPTION
-		Can be executed by Identity which has Power Platform Administrator role within Entra.
+		Can be executed by an Identity that has Power Platform Administrator role within Entra.
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
@@ -229,13 +207,9 @@ function PowerPlatform.Environment.RetrieveAll
 	[OutputType([PowerPlatformEnvironmentInfo[]])]
 	param
 	(
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[SecureString] $accessToken,
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $false)]
-		[String] $apiVersion = '2024-05-01'
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $false)] [String]       $apiVersion = '2024-05-01'
 	)
 	process
 	{
@@ -271,7 +245,7 @@ function PowerPlatform.Environment.Update
 	.SYNOPSIS
 		Update an environment within the Power Platform tenant.
 	.DESCRIPTION
-		Can be executed by Identity which has Power Platform Administrator role within Entra.
+		Can be executed by an Identity that has Power Platform Administrator role within Entra.
 	.PARAMETER accessToken
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
@@ -290,21 +264,13 @@ function PowerPlatform.Environment.Update
 	[OutputType([PowerPlatformEnvironmentInfo])]
 	param
 	(
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[SecureString] $accessToken,
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $false)]
-		[String] $apiVersion = '2024-05-01',
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $false)] [String]       $apiVersion = '2024-05-01',
 
-		[ValidateNotNullOrEmpty()]
-		[Parameter(Mandatory = $true)]
-		[String] $name,
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $name,
 
-		[ValidateNotNull()]
-		[Parameter(Mandatory = $true)]
-		[Object] $settings
+		[ValidateNotNull()]        [Parameter(Mandatory = $true)]  [Object]       $settings
 	)
 	process
 	{
@@ -328,11 +294,11 @@ function PowerPlatform.Environment.Update
 <# Functions to manage Managed Identities #>
 <# ###################################### #>
 
-function PowerPlatform.ManagedIdentity.Provision
+function PowerPlatform.ManagedIdentity.CreateIfNotExist
 {
 	<#
 	.SYNOPSIS
-		Provision a Managed Identity within the Power Platform Environment.
+		Create a Managed Identity within the Power Platform Environment.
 	.DESCRIPTION
 		More information here: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/managedidentity
 	.PARAMETER accessToken
@@ -341,11 +307,11 @@ function PowerPlatform.ManagedIdentity.Provision
 		Version of the Power Platform API to use.
 	.PARAMETER applicationId
 		Application (Client) Id of the Service Principal within the Entra tenant.
-	.PARAMETER id
-		Id of the Managed Identity within Power Platform Environment.
-	.PARAMETER instanceUrl
+	.PARAMETER environmentUrl
 		Url of the Power Platform environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.PARAMETER id
+		Id of the Managed Identity within Power Platform Environment.
 	.PARAMETER tenantId
 		Id of the Entra tenant.
 	.OUTPUTS
@@ -359,22 +325,34 @@ function PowerPlatform.ManagedIdentity.Provision
 	[OutputType([ordered])]
 	param
 	(
-		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
-		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [String]       $applicationId,
-		[Parameter(Mandatory = $false)] [String]       $id = (New-Guid).Guid,
-		[Parameter(Mandatory = $true)]  [String]       $instanceUrl,
-		[Parameter(Mandatory = $true)]  [String]       $tenantId
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [SecureString] $accessToken,
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $applicationId,
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $environmentUrl,
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $id,
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $tenantId
 	)
 	process
 	{
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# create request uri
-		$uri = "$($instanceUrl)api/data/$($apiVersion)/managedidentities";
+		# check if identity exist
+		$exist = PowerPlatform.ManagedIdentity.Exist -accessToken $accessToken -apiVersion $apiVersion -environmentUrl $environmentUrl -Verbose:$isVerbose;
 
-		# create request body
+		if ($exist)
+		{
+			return [ordered]@{
+				id = $id
+			};
+		}
+
+		# create web request body
 		$body = @{
 			applicationid     = $applicationId
 			credentialsource  = 2
@@ -383,7 +361,10 @@ function PowerPlatform.ManagedIdentity.Provision
 			tenantid          = $tenantId
 		};
 
-		# make request
+		# create web request uri
+		$uri = "$($environmentUrl)api/data/$($apiVersion)/managedidentities";
+
+		# invoke web request to create managed identity and get to completion
 		$response = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $body -method Post -uri $uri -Verbose:$isVerbose;
 
 		# convert response content
@@ -394,16 +375,15 @@ function PowerPlatform.ManagedIdentity.Provision
 			id = $responseContent.managedidentityid
 		};
 
-		# return result
 		return $result;
 	}
 }
 
-function PowerPlatform.ManagedIdentity.Remove
+function PowerPlatform.ManagedIdentity.DeleteIfExist
 {
 	<#
 	.SYNOPSIS
-		Remove a Managed Identity from the Power Platform environment.
+		Delete a Managed Identity from the Power Platform environment.
 	.DESCRIPTION
 		More information here: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/managedidentity
 	.PARAMETER accessToken
@@ -412,36 +392,80 @@ function PowerPlatform.ManagedIdentity.Remove
 		Version of the Power Platform API to use.
 	.PARAMETER id
 		Id of the Managed Identity within the Power Platform Environment.
-	.PARAMETER instanceUrl
+	.PARAMETER environmentUrl
 		Url of the Power Platform environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.OUTPUTS
+		True if environment deleted, False otherwise.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
 
 	[CmdletBinding()]
+	[OutputType([Boolean])]
 	param
 	(
-		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
-		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [String]       $id,
-		[Parameter(Mandatory = $true)]  [String]       $instanceUrl
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [SecureString] $accessToken,
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $id,
+
+		[ValidateNotNullOrEmpty()] [Parameter(Mandatory = $true)]  [String]       $environmentUrl
 	)
 	process
 	{
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# create request uri
-		$uri = "$($instanceUrl)api/data/$($apiVersion)/managedidentities($($id))";
+		# check if identity exist
+		$exist = PowerPlatform.ManagedIdentity.Exist -accessToken $accessToken -apiVersion $apiVersion -environmentUrl $environmentUrl -Verbose:$isVerbose;
 
-		# execute request
-		$null = Invoke-WebRequest `
-			-Authentication Bearer `
-			-Method Delete `
-			-Token $accessToken `
-			-Uri $uri `
-			-Verbose:$isVerbose;
+		if (!$exist)
+		{
+			return $false;
+		}
+
+		# create web request uri
+		$uri = "$($environmentUrl)api/data/$($apiVersion)/managedidentities($($id))";
+
+		# invoke web request
+		$null = InvokeWebRequest -accessToken $accessToken -method Delete -uri $uri -Verbose:$isVerbose;
+
+		return $true;
+	}
+}
+
+# this is internal helper function
+function PowerPlatform.ManagedIdentity.Exist
+{
+	[CmdletBinding()]
+	[OutputType([Boolean])]
+	param
+	(
+		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
+
+		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
+
+		[Parameter(Mandatory = $true)]  [String]       $environmentUrl
+	)
+	process
+	{
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
+		# create web request uri
+		$uri = "$($environmentUrl)api/data/$($apiVersion)/managedidentities?`$select=managedidentityid&`$filter=managedidentityid eq $($id)";
+
+		# invoke web request to check if managed identity exist
+		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -Verbose:$isVerbose;
+
+		# convert response content
+		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
+
+		$result = $responseContent.value.Count -eq 1;
+
+		return $result;
 	}
 }
 
@@ -465,7 +489,7 @@ function PowerPlatform.SystemUser.Provision
 	.PARAMETER businessUnitId
 		Unique identifier of the Business Unit with which the User is associated.
 		If not specified root business unit will be used.
-	.PARAMETER instanceUrl
+	.PARAMETER environmentUrl
 		Url of the Power Platform Environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'
 	.OUTPUTS
@@ -484,7 +508,7 @@ function PowerPlatform.SystemUser.Provision
 		[Parameter(Mandatory = $true)]  [String]       $applicationId,
 		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $false)] [String]       $businessUnitId = $null,
-		[Parameter(Mandatory = $true)]  [String]       $instanceUrl,
+		[Parameter(Mandatory = $true)]  [String]       $environmentUrl,
 		[Parameter(Mandatory = $true)]  [String[]]     $roleIds
 	)
 	process
@@ -496,7 +520,7 @@ function PowerPlatform.SystemUser.Provision
 		if ([String]::IsNullOrEmpty($businessUnitId))
 		{
 			# create request uri to get root business unit
-			$uri = "$($instanceUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
+			$uri = "$($environmentUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
 
 			# execute request
 			$response = Invoke-WebRequest `
@@ -514,7 +538,7 @@ function PowerPlatform.SystemUser.Provision
 		}
 
 		# create request uri
-		$uri = "$($instanceUrl)api/data/$($apiVersion)/systemusers";
+		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers";
 
 		# create request body
 		$requestBody = [PSCustomObject]@{
@@ -545,11 +569,11 @@ function PowerPlatform.SystemUser.Provision
 		foreach ($roleId in $roleIds)
 		{
 			# create request uri
-			$uri = "$($instanceUrl)api/data/$($apiVersion)/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
+			$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
 
 			# create request body
 			$requestBody = [PSCustomObject]@{
-				'@odata.id' = "$($instanceUrl)api/data/$($apiVersion)/roles($($roleId))"
+				'@odata.id' = "$($environmentUrl)api/data/$($apiVersion)/roles($($roleId))"
 			} | ConvertTo-Json -Compress;
 
 			# execute request
@@ -593,7 +617,7 @@ function PowerPlatform.SystemUser.Remove
 		[Parameter(Mandatory = $true)]  [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [String]       $id,
-		[Parameter(Mandatory = $true)]  [String]       $instanceUrl
+		[Parameter(Mandatory = $true)]  [String]       $environmentUrl
 	)
 	process
 	{
@@ -601,7 +625,7 @@ function PowerPlatform.SystemUser.Remove
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create request uri
-		$uri = "$($instanceUrl)api/data/$($apiVersion)/systemusers($($id))";
+		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers($($id))";
 
 		# execute disable request
 		$null = InvokeWebRequestAndGetComplete `
@@ -653,26 +677,14 @@ function InvokeWebRequest
 
 		if ($null -eq $body)
 		{
-			# execute request
-			return Invoke-WebRequest `
-				-Authentication Bearer `
-				-Method $method `
-				-Token $accessToken `
-				-Uri $uri `
-				-Verbose:$isVerbose;
+			# invoke web request
+			return Invoke-WebRequest -Authentication Bearer -Method $method -Token $accessToken -Uri $uri -Verbose:$isVerbose;
 		}
 
 		$requestBody = $body | ConvertTo-Json -Compress -Depth 100;
 
-		# execute request
-		return Invoke-WebRequest `
-			-Authentication Bearer `
-			-Body $requestBody `
-			-ContentType 'application/json' `
-			-Method $method `
-			-Token $accessToken `
-			-Uri $uri `
-			-Verbose:$isVerbose;
+		# invoke web request
+		return Invoke-WebRequest -Authentication Bearer -Body $requestBody -ContentType 'application/json' -Method $method -Token $accessToken -Uri $uri -Verbose:$isVerbose;
 	}
 }
 
@@ -692,13 +704,8 @@ function InvokeWebRequestAndGetComplete
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# invoke request and get response
-		$response = InvokeWebRequest `
-			-accessToken $accessToken `
-			-body $body `
-			-method $method `
-			-uri $uri `
-			-Verbose:$isVerbose;
+		# invoke web request to get operation status uri
+		$response = InvokeWebRequest -accessToken $accessToken -body $body -method $method -uri $uri -Verbose:$isVerbose;
 
 		if (!$response.Headers.ContainsKey('Location'))
 		{
@@ -710,12 +717,8 @@ function InvokeWebRequestAndGetComplete
 
 		while ($true)
 		{
-			# make status request
-			$response = InvokeWebRequest `
-				-accessToken $accessToken `
-				-method Get `
-				-uri $statusUri `
-				-Verbose:$isVerbose;
+			# invoke web request to get status update
+			$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $statusUri -Verbose:$isVerbose;
 
 			if (!$response.Headers.ContainsKey('Retry-After'))
 			{

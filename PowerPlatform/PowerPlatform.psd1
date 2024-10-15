@@ -46,8 +46,8 @@
 		'PowerPlatform.Environment.Retrieve',
 		'PowerPlatform.Environment.RetrieveAll',
 		'PowerPlatform.Environment.Update',
-		'PowerPlatform.ManagedIdentity.Provision',
-		'PowerPlatform.ManagedIdentity.Remove', 
+		'PowerPlatform.ManagedIdentity.CreateIfNotExist',
+		'PowerPlatform.ManagedIdentity.DeleteIfExist', 
 		'PowerPlatform.SystemUser.Provision',
 		'PowerPlatform.SystemUser.Remove'
 	)
