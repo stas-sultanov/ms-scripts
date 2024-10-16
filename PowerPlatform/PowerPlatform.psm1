@@ -59,7 +59,7 @@ function Environment.Create
 		$name = ($response.Content | ConvertFrom-Json -AsHashtable).links.environment.path.Split('/')[4];
 
 		# retrieve environment info
-		$result = Environment.Retrieve -accessToken $accessToken -apiVersion $apiVersion -name $name -verbose $isVerbose;
+		$result = Environment.Retrieve -accessToken $accessToken -apiVersion $apiVersion -name $name -Verbose:$isVerbose;
 
 		return $result;
 	}
@@ -154,6 +154,9 @@ function Environment.Retrieve
 	)
 	process
 	{
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
 		# create web request uri
 		$uri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)&$($EnvironmentSelect)";
 
@@ -265,13 +268,13 @@ function Environment.Update
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create web request uri
-		-uri "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)" `
+		$uri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)";
 		
 		# invoke web request to update the environment and get to completion
 		$null = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $settings -uri $uri -method Patch -verbose $isVerbose;
 
 		# retrieve environment info
-		$result = Environment.Retrieve -accessToken $accessToken -apiVersion $apiVersion -name $name -verbose $isVerbose;
+		$result = Environment.Retrieve -accessToken $accessToken -apiVersion $apiVersion -name $name -Verbose:$isVerbose;
 
 		return $result;
 	}
