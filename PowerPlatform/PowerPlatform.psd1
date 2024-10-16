@@ -21,7 +21,7 @@
 	Copyright              = '© 2024 Stas Sultanov. All rights reserved'
 
 	# Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
-	# DefaultCommandPrefix = 'PowerPlatform'
+	DefaultCommandPrefix = 'PowerPlatform.'
 
 	# Description of the functionality provided by this module
 	Description            = 'PowerShell interface for Microsoft Power Platform.'
@@ -41,15 +41,15 @@
 
 	# Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 	FunctionsToExport      = @(
-		'PowerPlatform.Environment.Create',
-		'PowerPlatform.Environment.Delete',
-		'PowerPlatform.Environment.Retrieve',
-		'PowerPlatform.Environment.RetrieveAll',
-		'PowerPlatform.Environment.Update',
-		'PowerPlatform.ManagedIdentity.CreateIfNotExist',
-		'PowerPlatform.ManagedIdentity.DeleteIfExist', 
-		'PowerPlatform.SystemUser.Provision',
-		'PowerPlatform.SystemUser.Remove'
+		'Environment.Create',
+		'Environment.Delete',
+		'Environment.Retrieve',
+		'Environment.RetrieveAll',
+		'Environment.Update',
+		'ManagedIdentity.CreateIfNotExist',
+		'ManagedIdentity.DeleteIfExist', 
+		'SystemUser.CreateIfNotExist',
+		'SystemUser.DeleteIfExist'
 	)
 
 	# ID used to uniquely identify this module
