@@ -2,9 +2,9 @@ using namespace System;
 using namespace System.Collections.Generic;
 using namespace Microsoft.PowerShell.Commands;
 
-<# ################################ #>
-<# Types                            #>
-<# ################################ #>
+<# ##### #>
+<# Types #>
+<# ##### #>
 
 class PowerPlatformEnvironmentInfo
 {
@@ -44,17 +44,17 @@ function BusinessUnit.GetRootId
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Uri]          $environmentUrl
 	)
 	process
 	{
 		# get verbose parameter value
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
-		# create request uri to get root business unit
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
+		# create web request uri
+		$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
 
-		# execute request
+		# invoke web request to get root business unit
 		$response = InvokeWebRequest -accessToken $accessToken -method Get -Uri $uri -verbose $isVerbose;
 
 		# convert response content
@@ -108,7 +108,7 @@ function Environment.Create
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create web request uri
-		$uri = "$($EnvironmentApiUri)/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false";
+		$uri = [Uri] "$($EnvironmentApiUri)/environments?api-version=$($apiVersion)&retainOnProvisionFailure=false";
 
 		# invoke web request to create environment and get to completion
 		$response = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $settings -method Post -uri $uri -verbose $isVerbose;
@@ -159,7 +159,7 @@ function Environment.Delete
 		$baseRequestUri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)";
 
 		# create validation web request uri
-		$validateUri = "$($baseRequestUri)/validateDelete?api-version=$($apiVersion)";
+		$validateUri = [Uri] "$($baseRequestUri)/validateDelete?api-version=$($apiVersion)";
 
 		# invoke web request to validate deletion
 		$validateResponse = InvokeWebRequest -accessToken $accessToken -method Post -uri $validateUri -verbose $isVerbose;
@@ -174,7 +174,7 @@ function Environment.Delete
 		}
 
 		# create deletion web request uri
-		$deleteUri = "$($baseRequestUri)?api-version=$($apiVersion)";
+		$deleteUri = [Uri] "$($baseRequestUri)?api-version=$($apiVersion)";
 
 		# invoke web request to delete and get to completion
 		$null = InvokeWebRequestAndGetComplete -accessToken $accessToken -method Delete -uri $deleteUri -verbose $isVerbose;
@@ -216,7 +216,7 @@ function Environment.Retrieve
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create web request uri
-		$uri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)&$($EnvironmentSelect)";
+		$uri = [Uri] "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)&$($EnvironmentSelect)";
 
 		# invoke web request to get environment info
 		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -verbose $isVerbose;
@@ -268,7 +268,7 @@ function Environment.RetrieveAll
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create web request uri
-		$uri = "$($EnvironmentApiUri)/scopes/admin/environments?api-version=$($apiVersion)&$($EnvironmentSelect)";
+		$uri = [Uri] "$($EnvironmentApiUri)/scopes/admin/environments?api-version=$($apiVersion)&$($EnvironmentSelect)";
 
 		# invoke web request to get all accessible environments | OData $filter does not work :(
 		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -verbose $isVerbose;
@@ -326,7 +326,7 @@ function Environment.Update
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# create web request uri
-		$uri = "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)";
+		$uri = [Uri] "$($EnvironmentApiUri)/scopes/admin/environments/$($name)?api-version=$($apiVersion)";
 		
 		# invoke web request to update the environment and get to completion
 		$null = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $settings -uri $uri -method Patch -verbose $isVerbose;
@@ -375,7 +375,7 @@ function ManagedIdentity.CreateIfNotExist
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $applicationId,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Uri]          $environmentUrl,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $tenantId
 	)
@@ -402,7 +402,7 @@ function ManagedIdentity.CreateIfNotExist
 		};
 
 		# create web request uri
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/managedidentities";
+		$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/managedidentities";
 
 		# invoke web request to create managed identity and get to completion
 		$response = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $body -method Post -uri $uri -verbose $isVerbose;
@@ -445,7 +445,7 @@ function ManagedIdentity.DeleteIfExist
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Uri]          $environmentUrl,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id
 	)
 	process
@@ -462,9 +462,9 @@ function ManagedIdentity.DeleteIfExist
 		}
 
 		# create web request uri
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/managedidentities($($id))";
+		$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/managedidentities($($id))";
 
-		# invoke web request
+		# invoke web request to delete managed identity
 		$null = InvokeWebRequest -accessToken $accessToken -method Delete -uri $uri -verbose $isVerbose;
 
 		return $true;
@@ -500,7 +500,7 @@ function SystemUser.AssociateRoles
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Uri]          $environmentUrl,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid[]]       $roles
 	)
@@ -512,15 +512,15 @@ function SystemUser.AssociateRoles
 		# assign roles
 		foreach ($roleId in $roles)
 		{
-			# create request uri
-			$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers($($id))%2Fsystemuserroles_association%2F%24ref";
+			# create web request uri
+			$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/systemusers($($id))%2Fsystemuserroles_association%2F%24ref";
 
-			# create request body
+			# create web request body
 			$requestBody = [PSCustomObject]@{
 				'@odata.id' = "$($environmentUrl)api/data/$($apiVersion)/roles($($roleId))"
 			} | ConvertTo-Json -Compress;
 
-			# execute request
+			# invoke web request to associate role
 			$null = InvokeWebRequest -accessToken $accessToken -body $requestBody -method Post -uri $uri -verbose $isVerbose;
 		}
 	}
@@ -561,7 +561,7 @@ function SystemUser.CreateIfNotExist
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $applicationId,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $businessUnitId,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Uri]          $environmentUrl,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id
 	)
 	process
@@ -578,7 +578,7 @@ function SystemUser.CreateIfNotExist
 		}
 
 		# create web request uri
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers";
+		$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/systemusers";
 
 		# create web request body
 		$requestBody = @{
@@ -632,7 +632,7 @@ function SystemUser.DeleteIfExist
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Uri]          $environmentUrl
 	)
 	process
 	{
@@ -647,18 +647,16 @@ function SystemUser.DeleteIfExist
 			return $false;
 		}
 
-		# create request uri
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers($($id))";
+		# create web request uri
+		$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/systemusers($($id))";
 
-		# execute disable request
+		# invoke web request to disable system user
 		$null = InvokeWebRequestAndGetComplete -accessToken $accessToken -body @{ isdisabled = $true } -method Patch -uri $uri -verbose $isVerbose;
 
-		# execute delete request
-		# this request changes state to deleted
+		# invoke web request to change state to deleted
 		$null = InvokeWebRequest -accessToken $accessToken -method Delete -uri $uri -verbose $isVerbose;
 
-		# execute delete request
-		# this is actual delete
+		# invoke web request to delete system user
 		$null = InvokeWebRequest -accessToken $accessToken -method Delete -uri $uri -verbose $isVerbose;
 
 		return $true;
@@ -676,14 +674,14 @@ function ManagedIdentity.Exist
 	(
 		[SecureString] $accessToken,
 		[String]       $apiVersion,
-		[String]       $environmentUrl,
+		[Uri]          $environmentUrl,
 		[Guid]         $id,
 		[Boolean]      $verbose
 	)
 	process
 	{
 		# create web request uri
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/managedidentities?`$select=managedidentityid&`$filter=managedidentityid eq '$($id)'";
+		$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/managedidentities?`$select=managedidentityid&`$filter=managedidentityid eq '$($id)'";
 
 		# invoke web request to check if managed identity exist
 		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -verbose $verbose;
@@ -707,14 +705,14 @@ function SystemUser.Exist
 	(
 		[SecureString] $accessToken,
 		[String]       $apiVersion,
-		[String]       $environmentUrl,
+		[Uri]          $environmentUrl,
 		[Guid]         $id,
 		[Boolean]      $verbose
 	)
 	process
 	{
 		# create web request uri
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers?`$select=systemuserid&`$filter=systemuserid eq '$($id)'";
+		$uri = [Uri] "$($environmentUrl)api/data/$($apiVersion)/systemusers?`$select=systemuserid&`$filter=systemuserid eq '$($id)'";
 
 		# invoke web request to check if system user exist
 		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -verbose $verbose;
