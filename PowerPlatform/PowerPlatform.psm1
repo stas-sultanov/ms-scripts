@@ -1,8 +1,9 @@
 using namespace System;
+using namespace System.Collections.Generic;
 using namespace Microsoft.PowerShell.Commands;
 
 <# ################################ #>
-<# Functions to manage Environments #>
+<# Types                            #>
 <# ################################ #>
 
 class PowerPlatformEnvironmentInfo
@@ -12,6 +13,63 @@ class PowerPlatformEnvironmentInfo
 	[ValidateNotNullOrEmpty()] [String] $name
 	[ValidateNotNullOrEmpty()] [Uri]    $url
 }
+
+<# ################################## #>
+<# Functions to manage Business Units #>
+<# ################################## #>
+
+function BusinessUnit.GetRootId
+{
+	<#
+	.SYNOPSIS
+		Get Id of the root Business Unit within the Power Platform Environment.
+	.DESCRIPTION
+		More information here: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/businessunit
+	.PARAMETER accessToken
+		Bearer token to access. The token AUD must include 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.PARAMETER apiVersion
+		Version of the Power Platform API to use.
+	.PARAMETER environmentUrl
+		Url of the Power Platform Environment.
+		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.OUTPUTS
+		Business Unit Id.
+	.NOTES
+		Copyright © 2024 Stas Sultanov.
+	#>
+
+	[CmdletBinding()]
+	[OutputType([String])]
+	param
+	(
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
+		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl
+	)
+	process
+	{
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
+		# create request uri to get root business unit
+		$uri = "$($environmentUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
+
+		# execute request
+		$response = InvokeWebRequest -accessToken $accessToken -method Get -Uri $uri -verbose $isVerbose;
+
+		# convert response content
+		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
+
+		# get business unit id
+		$result = $responseContent.value[0].businessunitid;
+
+		return $result;
+	}
+}
+
+<# ################################ #>
+<# Functions to manage Environments #>
+<# ################################ #>
 
 $EnvironmentApiUri = 'https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform';
 
@@ -305,14 +363,13 @@ function ManagedIdentity.CreateIfNotExist
 	.PARAMETER tenantId
 		Id of the Entra tenant.
 	.OUTPUTS
-		System.Object
-			id : Environment Id
+		Managed Identity Id.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
 
 	[CmdletBinding()]
-	[OutputType([ordered])]
+	[OutputType([String])]
 	param
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
@@ -332,9 +389,7 @@ function ManagedIdentity.CreateIfNotExist
 
 		if ($exist)
 		{
-			return [ordered]@{
-				id = $id
-			};
+			return $id;
 		}
 
 		# create web request body
@@ -356,9 +411,7 @@ function ManagedIdentity.CreateIfNotExist
 		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
 
 		# create result from response
-		$result = [ordered]@{
-			id = $responseContent.managedidentityid
-		};
+		$result = $responseContent.managedidentityid;
 
 		return $result;
 	}
@@ -381,7 +434,7 @@ function ManagedIdentity.DeleteIfExist
 		Url of the Power Platform environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
 	.OUTPUTS
-		True if environment deleted, False otherwise.
+		True if Managed Identity deleted, False otherwise.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -422,6 +475,57 @@ function ManagedIdentity.DeleteIfExist
 <# Functions to manage System Users #>
 <# ################################ #>
 
+function SystemUser.AssociateRoles
+{
+	<#
+	.SYNOPSIS
+		Associate roles to the System User.
+	.DESCRIPTION
+		More information here: https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/systemuser
+	.PARAMETER accessToken
+		Bearer token to access. The token AUD must include 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.PARAMETER apiVersion
+		Version of the Power Platform API to use.
+	.PARAMETER environmentUrl
+		Url of the Power Platform Environment.
+		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.PARAMETER id
+		Id of the System User within the Power Platform Environment.
+	.NOTES
+		Copyright © 2024 Stas Sultanov.
+	#>
+
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
+		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $id,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String[]]     $roles
+	)
+	process
+	{
+		# get verbose parameter value
+		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
+
+		# assign roles
+		foreach ($roleId in $roles)
+		{
+			# create request uri
+			$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers($($id))%2Fsystemuserroles_association%2F%24ref";
+
+			# create request body
+			$requestBody = [PSCustomObject]@{
+				'@odata.id' = "$($environmentUrl)api/data/$($apiVersion)/roles($($roleId))"
+			} | ConvertTo-Json -Compress;
+
+			# execute request
+			$null = InvokeWebRequest -accessToken $accessToken -body $requestBody -method Post -uri $uri -verbose $isVerbose;
+		}
+	}
+}
+
 function SystemUser.CreateIfNotExist
 {
 	<#
@@ -442,23 +546,20 @@ function SystemUser.CreateIfNotExist
 		Url of the Power Platform Environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
 	.OUTPUTS
-		System.Object
-			id : System User Id
-			roleIds : collection of Ids of assigned Roles
+		System User Id.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
 
 	[CmdletBinding()]
-	[OutputType([ordered])]
+	[OutputType([String])]
 	param
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $applicationId,
-		[Parameter(Mandatory = $false)]                            [String]       $businessUnitId = $null,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String[]]     $roleIds
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $businessUnitId,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl
 	)
 	process
 	{
@@ -475,17 +576,10 @@ function SystemUser.CreateIfNotExist
 			};
 		}
 
-		# check if business unit is specified
-		if ([String]::IsNullOrEmpty($businessUnitId))
-		{
-			# set business unit id
-			$businessUnitId = BusinessUnit.GetRoot -accessToken $accessToken -apiVersion $apiVersion -environmentUrl $environmentUrl -verbose $isVerbose;
-		}
-
-		# create request uri
+		# create web request uri
 		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers";
 
-		# create request body
+		# create web request body
 		$requestBody = @{
 			accessmode                  = 4
 			'businessunitid@odata.bind' = "/businessunits($businessUnitId)"
@@ -493,34 +587,14 @@ function SystemUser.CreateIfNotExist
 			isdisabled                  = $false
 		};
 
-		# make request
+		# invoke web request to create system user and get to completion
 		$response = InvokeWebRequestAndGetComplete -accessToken $accessToken -body $requestBody -method Post -uri $uri -verbose $isVerbose;
 
 		# convert response content
 		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
 		
 		# create result from response
-		$result = [ordered]@{
-			id      = $responseContent.systemuserid
-			roleIds = [System.Collections.Generic.List[String]]::new()
-		};
-
-		# assign roles
-		foreach ($roleId in $roleIds)
-		{
-			# create request uri
-			$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers($($result.id))%2Fsystemuserroles_association%2F%24ref";
-
-			# create request body
-			$requestBody = [PSCustomObject]@{
-				'@odata.id' = "$($environmentUrl)api/data/$($apiVersion)/roles($($roleId))"
-			} | ConvertTo-Json -Compress;
-
-			# execute request
-			$null = InvokeWebRequest -accessToken $accessToken -body $requestBody -method Post -uri $uri -verbose $isVerbose;
-
-			$result.roleIds.Add($roleId);
-		}
+		$result = $responseContent.systemuserid;
 
 		# return result
 		return $result;
@@ -543,6 +617,8 @@ function SystemUser.DeleteIfExist
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
 	.PARAMETER id
 		Id of the System User within the Power Platform Environment.
+	.OUTPUTS
+		True if System User deleted, False otherwise.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
@@ -589,34 +665,6 @@ function SystemUser.DeleteIfExist
 <# ######################### #>
 <# Internal helper functions #>
 <# ######################### #>
-
-function BusinessUnit.GetRoot
-{
-	[OutputType([String])]
-	param
-	(
-		[SecureString] $accessToken,
-		[String]       $apiVersion,
-		[String]       $environmentUrl,
-		[Boolean]      $verbose
-	)
-	process
-	{
-		# create request uri to get root business unit
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/businessunits?%24select=businessunitid&%24filter=_parentbusinessunitid_value%20eq%20null";
-
-		# execute request
-		$response = InvokeWebRequest -accessToken $accessToken -method Get -Uri $uri -verbose $verbose;
-
-		# convert response content
-		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
-
-		# get business unit id
-		$result = $responseContent.value[0].businessunitid;
-
-		return $result;
-	}
-}
 
 function ManagedIdentity.Exist
 {
