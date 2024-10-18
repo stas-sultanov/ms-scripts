@@ -247,8 +247,6 @@ function Environment.RetrieveAll
 		Bearer token to access. The token AUD must include 'https://service.powerapps.com/'.
 	.PARAMETER apiVersion
 		Version of the Power Platform API to use.
-	.PARAMETER settings
-		Object that contains all settings required to create an environment.
 	.OUTPUTS
 		Array of objects that each provides a short information about the environments.
 	.NOTES
