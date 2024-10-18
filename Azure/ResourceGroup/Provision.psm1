@@ -6,7 +6,7 @@ function Azure.ResourceGroup.Provision
 	.DESCRIPTION
 		Can be executed by Identity which has Power Platform Administrator role within Entra.
 	.PARAMETER deploymentModeComplete
-		True if performe Complete deployment, otherwise Incremental.
+		True if perform Complete deployment, otherwise Incremental.
 	.PARAMETER deploymentName
 		The name of the deployment.
 	.PARAMETER location

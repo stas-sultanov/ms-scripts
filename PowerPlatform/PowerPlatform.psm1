@@ -359,7 +359,7 @@ function ManagedIdentity.CreateIfNotExist
 		Url of the Power Platform environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
 	.PARAMETER id
-		Id of the Managed Identity within Power Platform Environment.
+		Id of the Managed Identity within the Power Platform Environment.
 	.PARAMETER tenantId
 		Id of the Entra tenant.
 	.OUTPUTS
@@ -369,15 +369,15 @@ function ManagedIdentity.CreateIfNotExist
 	#>
 
 	[CmdletBinding()]
-	[OutputType([String])]
+	[OutputType([Guid])]
 	param
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $applicationId,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $applicationId,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $id,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $tenantId
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $tenantId
 	)
 	process
 	{
@@ -428,11 +428,11 @@ function ManagedIdentity.DeleteIfExist
 		Bearer token to access. The token AUD must include 'https://[DomainName].[DomainSuffix].dynamics.com/'.
 	.PARAMETER apiVersion
 		Version of the Power Platform API to use.
-	.PARAMETER id
-		Id of the Managed Identity within the Power Platform Environment.
 	.PARAMETER environmentUrl
 		Url of the Power Platform environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.PARAMETER id
+		Id of the Managed Identity within the Power Platform Environment.
 	.OUTPUTS
 		True if Managed Identity deleted, False otherwise.
 	.NOTES
@@ -445,8 +445,8 @@ function ManagedIdentity.DeleteIfExist
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $id,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id
 	)
 	process
 	{
@@ -501,8 +501,8 @@ function SystemUser.AssociateRoles
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $id,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String[]]     $roles
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid[]]       $roles
 	)
 	process
 	{
@@ -545,6 +545,8 @@ function SystemUser.CreateIfNotExist
 	.PARAMETER environmentUrl
 		Url of the Power Platform Environment.
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
+	.PARAMETER id
+		Id of the System User within the Power Platform Environment.
 	.OUTPUTS
 		System User Id.
 	.NOTES
@@ -552,14 +554,15 @@ function SystemUser.CreateIfNotExist
 	#>
 
 	[CmdletBinding()]
-	[OutputType([String])]
+	[OutputType([Guid])]
 	param
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $applicationId,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $businessUnitId,
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $applicationId,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $businessUnitId,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id
 	)
 	process
 	{
@@ -567,13 +570,11 @@ function SystemUser.CreateIfNotExist
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# check if system user exist
-		$systemUser = SystemUser.Retrieve -accessToken $accessToken -apiVersion $apiVersion -filter "applicationid eq $($applicationId)" -environmentUrl $environmentUrl -verbose $isVerbose;
+		$exist = SystemUser.Exist -accessToken $accessToken -apiVersion $apiVersion -environmentUrl $environmentUrl -id $id -verbose $isVerbose;
 
-		if ($null -ne $systemUser)
+		if ($exist)
 		{
-			return [ordered]@{
-				id = $systemUser.systemuserid
-			};
+			return $id;
 		}
 
 		# create web request uri
@@ -582,9 +583,10 @@ function SystemUser.CreateIfNotExist
 		# create web request body
 		$requestBody = @{
 			accessmode                  = 4
-			'businessunitid@odata.bind' = "/businessunits($businessUnitId)"
 			applicationid               = $applicationId
+			'businessunitid@odata.bind' = "/businessunits($businessUnitId)"
 			isdisabled                  = $false
+			systemuserid                = $id
 		};
 
 		# invoke web request to create system user and get to completion
@@ -624,11 +626,12 @@ function SystemUser.DeleteIfExist
 	#>
 
 	[CmdletBinding()]
+	[OutputType([Boolean])]
 	param
 	(
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [SecureString] $accessToken,
 		[Parameter(Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]       $apiVersion = 'v9.2',
-		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $id,
+		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [Guid]         $id,
 		[Parameter(Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]       $environmentUrl
 	)
 	process
@@ -637,9 +640,9 @@ function SystemUser.DeleteIfExist
 		$isVerbose = $PSBoundParameters.ContainsKey('Verbose') -and $PSBoundParameters['Verbose'];
 
 		# check if system user exist
-		$systemUser = SystemUser.Retrieve -accessToken $accessToken -apiVersion $apiVersion -filter "systemuserid eq $($id)" -environmentUrl $environmentUrl -verbose $isVerbose;
+		$exist = SystemUser.Exist -accessToken $accessToken -apiVersion $apiVersion -environmentUrl $environmentUrl -id $id -verbose $isVerbose;
 
-		if ($null -eq $systemUser)
+		if (!$exist)
 		{
 			return $false;
 		}
@@ -668,13 +671,13 @@ function SystemUser.DeleteIfExist
 
 function ManagedIdentity.Exist
 {
-	[OutputType([String])]
+	[OutputType([Boolean])]
 	param
 	(
 		[SecureString] $accessToken,
 		[String]       $apiVersion,
 		[String]       $environmentUrl,
-		[String]       $id,
+		[Guid]         $id,
 		[Boolean]      $verbose
 	)
 	process
@@ -697,35 +700,34 @@ function ManagedIdentity.Exist
 	}
 }
 
-function SystemUser.Retrieve
+function SystemUser.Exist
 {
-	[OutputType([String])]
+	[OutputType([Boolean])]
 	param
 	(
 		[SecureString] $accessToken,
 		[String]       $apiVersion,
 		[String]       $environmentUrl,
-		[String]       $filter,
+		[Guid]         $id,
 		[Boolean]      $verbose
 	)
 	process
 	{
-		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers?`$select=applicationid,systemuserid&`$filter=$($filter)";
+		# create web request uri
+		$uri = "$($environmentUrl)api/data/$($apiVersion)/systemusers?`$select=systemuserid&`$filter=systemuserid eq '$($id)'";
 
-		# invoke web request to check if managed identity exist
+		# invoke web request to check if system user exist
 		$response = InvokeWebRequest -accessToken $accessToken -method Get -uri $uri -verbose $verbose;
 
 		# convert response content
 		$responseContent = $response.Content | ConvertFrom-Json -AsHashtable;
 
-		$result = $null;
-
 		if ($responseContent.value.Count -eq 1)
 		{
-			$result = $responseContent.value[0]
+			return $true;
 		}
 
-		return $result;
+		return $false;
 	}
 }
 
