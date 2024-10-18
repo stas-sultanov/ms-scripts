@@ -2,7 +2,7 @@ Authored by Stas Sultanov [ [linkedIn](https://www.linkedin.com/in/stas-sultanov
 
 # About
 
-The Powershell module to  for Microsoft Power Platform.
+The Microsoft Power Platform Powershell module.
 
 ## Purpose
 
