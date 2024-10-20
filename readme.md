@@ -8,14 +8,16 @@ Collection of Powershell modules for Microsoft services.
 ```bash
 Root
 │
+├── .NET                        # Folder with modules for Microsoft dotNET.
+│
 ├── Azure                       # Folder with modules for Microsoft Azure.
 │
-├── AzureDevOps                 # Folder with modules for Microsoft Azure.
+├── AzureDevOps                 # Folder with modules for Microsoft Azure DevOps.
 │
 ├── Entra                       # Folder with modules for Microsoft Entra.
 │
 ├── PowerPlatform               # Folder with modules for Microsoft Power Platform.
-│
+|
 ├── license                     # License file.
 └── readme.md                   # This file.
 ```
