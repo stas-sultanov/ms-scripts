@@ -489,6 +489,8 @@ function SystemUser.AssociateRoles
 		Format 'https://[DomainName].[DomainSuffix].dynamics.com/'.
 	.PARAMETER id
 		Id of the System User within the Power Platform Environment.
+	.PARAMETER roles
+		Array of Roles to assign to the System User.
 	.NOTES
 		Copyright © 2024 Stas Sultanov.
 	#>
